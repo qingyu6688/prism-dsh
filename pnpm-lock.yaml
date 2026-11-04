@@ -540,6 +540,9 @@ importers:
       '@deepseek-ai/schemastery':
         specifier: link:../../vendor/schemastery
         version: link:../../vendor/schemastery
+      '@prism/dsh-bundle-desktop':
+        specifier: workspace:*
+        version: link:../../packages/bundle/prism-desktop
       commander:
         specifier: ^15.0.0
         version: 15.0.0
@@ -2766,6 +2769,8 @@ importers:
       '@deepseek-ai/dsh-user-approval':
         specifier: workspace:*
         version: link:../../interaction/user-approval
+
+  packages/bundle/prism-desktop: {}
 
   packages/bundle/sdk-app:
     dependencies:

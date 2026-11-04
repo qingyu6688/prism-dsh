@@ -1,0 +1,135 @@
+# 棱镜的 Agent 预设（docs/prism/design.md 第 6 节）。
+# 照 dsh-web-app 的 standard 预设复制，工具一个不少（2026-11-04 决定保留 shell、文件系统、
+# 技能、目标、子智能体和工作流）；只把人设和计划模式提示词改成电商场景。
+# 同步上游时，先对照 standard 预设的变化再合并到这里。棱镜的业务工具以后加在这里。
+- insert:
+    - id: preset-prism
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: prism
+        order: 0
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: >-
+                你是棱镜，一个电商运营助手，由 {{model}} 模型驱动。用中文简洁地回答。
+                你帮用户处理商品资料、主图和详情图、标题和卖点文案、上架表格、数据复盘和选品分析。
+                需要实际产出（生成图片、写文案、导出表格）时调用对应的工具，不要假装已经做完；
+                张数多、花费高的任务先说明数量再执行。
+          - id: agent-instructions
+            name: '@deepseek-ai/dsh-agent-instructions'
+            config:
+              maxBytes: 65536
+          - id: time-context
+            name: '@deepseek-ai/dsh-time-context'
+          - id: tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - id: tool-pwsh
+            name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'
+          - id: tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+            config:
+              # Set false to drop the apply_patch tool beside edit.
+              applyPatch: false
+          - id: tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+            config:
+              sampleOverCapGlobResults: false
+          - id: tool-jobs
+            name: '@deepseek-ai/dsh-tool-jobs'
+          - id: tool-schedule
+            name: '@deepseek-ai/dsh-tool-schedule'
+          - id: skill-filesystem
+            name: '@deepseek-ai/dsh-skill-filesystem'
+          - id: tool-skill
+            name: '@deepseek-ai/dsh-tool-skill'
+          - id: command-goal
+            name: '@deepseek-ai/dsh-command-goal'
+          - id: tool-goal
+            name: '@deepseek-ai/dsh-tool-goal'
+          - id: planning
+            name: cordis:group
+            group: true
+            isolate:
+              planMode: true
+            config:
+              - id: plan-mode
+                name: '@deepseek-ai/dsh-plan-mode'
+                config:
+                  section: |
+                    你处在计划模式。用户通过 exit_plan_mode 批准计划或切换会话模式之前，一直留在计划模式。用户说"去做"的意思是把做法规划好，不是马上执行。
+
+                    先查清楚情况：用只读的查询、搜索和检查了解商品、素材、店铺、规则和相关文件；不要生成图片、写入文案、导出或修改文件、运行会改动东西的命令，也不要做其他有产出或花费的操作。
+
+                    为了请求缓存稳定，计划模式下工具列表和平时一样；列出来的生成、写入、修改类工具在计划模式里一律不用，这条优先于后面任何工具说明。
+
+                    能查到的事实自己查，只有需要用户拍板的选择或查不清的歧义才用 ask_user_question 问。不要用 todo_write 记录规划过程，它用来跟踪批准后的执行。
+
+                    计划要写到能直接照着执行：目标和验收标准、分几步、每一步用哪个工具、处理哪些商品、预计出多少张图或多少条文案、步骤之间的先后关系、可能出问题的地方。
+
+                    准备好后调用 exit_plan_mode 提交完整计划（Markdown，以 # 标题开头），并且只调用这一个工具。不要把计划当普通回复贴出来，也不要用文字或 ask_user_question 问"要不要开始"。被退回就按意见修改后重新提交；审阅通道不可用时留在计划模式，请用户手动切换模式。
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: compaction-basic
+                name: '@deepseek-ai/dsh-compaction-basic'
+              - id: command-compact
+                name: '@deepseek-ai/dsh-command-compact'
+              - id: tool-result-pruner
+                name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+                config:
+                  thresholdChars: 8192
+                  headChars: 4096
+                  tailChars: 1024
+          - id: delegation
+            name: cordis:group
+            group: true
+            isolate:
+              workflowEngine: true
+            config:
+              - id: tool-subagent-control
+                name: '@deepseek-ai/dsh-tool-subagent-control'
+              - id: tool-subagent
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: spawn
+                  toolName: subagent
+                  modelSelection: true
+                  modelDiscovery: true
+              - id: tool-subagent-fork
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: fork
+                  toolName: subagent_fork
+              - id: workflow-ptc
+                name: '@deepseek-ai/dsh-workflow-ptc'
+                config:
+                  provider: spawn
+              - id: tool-workflow
+                name: '@deepseek-ai/dsh-tool-workflow'
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          - id: present
+            name: '@deepseek-ai/dsh-tool-present'
+          - id: tool-plugin-manager
+            name: '@deepseek-ai/dsh-plugin-manager/tools'
+            disabled: !!js "!ctx.get('profileContext')"
+          - id: tool-plugin-market
+            name: '@deepseek-ai/dsh-plugin-market/tools'
+            disabled: true

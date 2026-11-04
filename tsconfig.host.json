@@ -520,6 +520,7 @@
     { "path": "./packages/test-support/tool-testkit" },
     { "path": "./packages/acp/acp" },
     { "path": "./packages/bundle/acp-app" },
+    { "path": "./packages/bundle/prism-desktop" },
     { "path": "./packages/bundle/base" },
     { "path": "./packages/bundle/headless" },
     { "path": "./packages/bundle/sdk-app" },

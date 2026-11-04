@@ -1,0 +1,60 @@
+# 棱镜桌面端组合包（docs/prism/design.md 第 6 节）。
+# 叠在 dsh-base 和 dsh-web-app 之后：关掉对外上报和不用的集成，默认使用棱镜的 Agent 预设。
+# 2026-11-04 决定保留 shell、文件系统、技能、目标、子智能体和工作流，这些条目不在这里动。
+# 棱镜自己的插件以后用 insert 加在最后。
+
+# ── 遥测、产品数据采集、反馈上报：一律关闭 ─────────────────────────
+- id: otel
+  disabled: true
+- id: session-telemetry-otel
+  disabled: true
+- id: desktop-product-telemetry
+  disabled: true
+- id: product-analytics
+  disabled: true
+- id: message-feedback
+  disabled: true
+- id: ui-message-feedback
+  disabled: true
+- id: command-feedback
+  disabled: true
+- id: plugin-package-inventory-deepseek
+  disabled: true
+
+# ── DeepSeek 账号：棱镜用 API Key，不用账号登录 ──────────────────────
+# 账号后端 deepseek-account 和 account-controller 暂时保留：dsh 桌面端的欢迎流程启动时
+# 会监听账号状态，缺了它启动失败。做棱镜自己的欢迎页时一起去掉（design.md 第 10 节 D1）。
+- id: llm-deepseek-account
+  disabled: true
+- id: ui-settings-account
+  disabled: true
+
+# ── Cordis 调试工具（面向 dsh 开发者） ───────────────────────────────
+- id: cordis-host-runner
+  disabled: true
+- id: cordis-inspect-providers
+  disabled: true
+- id: cordis-client-runner
+  disabled: true
+- id: ui-cordis
+  disabled: true
+- id: harness-dev-context
+  disabled: true
+
+# ── MCP：暂不开放，需要时再打开 ─────────────────────────────────────
+- id: mcp-manager
+  disabled: true
+- id: mcp-resources
+  disabled: true
+
+# ── Agent 预设：默认用棱镜预设（presets/prism.patch.yml） ────────────
+# dsh 自带的预设保留，用户可以在设置里切换。
+- id: agent-preset-registry
+  config:
+    default: prism
+
+# 顶层系统提示词的人设前缀（dsh-web-app 写的是编码助手），改成棱镜的。
+- id: system-prompt
+  config:
+    personaPrefix: >-
+      你是棱镜，一个电商运营助手，由 {{model}} 模型驱动。
