@@ -102,7 +102,6 @@ export async function serveFile(dataDir: string | undefined, request: Request): 
 export function safeUploadName(name: string): string | undefined {
   // 自己按分隔符取最后一段：path.basename 在 Windows 上会把 `a:` 当成盘符去掉
   const last = name.replaceAll('\\', '/').split('/').pop() ?? ''
-  // eslint-disable-next-line no-control-regex -- 控制字符不能出现在文件名里
   const cleaned = last.replace(/[<>:"|?*\u0000-\u001f]/g, '_').trim()
   if (cleaned === '' || cleaned === '.' || cleaned === '..' || cleaned.length > MAX_NAME_LENGTH) return undefined
   return UPLOAD_EXTENSIONS.has(extname(cleaned).toLowerCase()) ? cleaned : undefined

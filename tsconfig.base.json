@@ -307,6 +307,7 @@
       "@deepseek-ai/dsh-client-ui-sidebar": ["./packages/client/ui-sidebar/src"],
       "@deepseek-ai/dsh-client-ui-brand-official": ["./packages/client/ui-brand-official/src"],
       "@prism/dsh-client-ui-brand": ["./packages/prism/ui-brand/src"],
+      "@prism/dsh-client-ui-catalog": ["./packages/prism/ui-catalog/src"],
       "@prism/dsh-host-service": ["./packages/prism/host-service/src"],
       "@prism/dsh-host-catalog": ["./packages/prism/host-catalog/src/index.ts"],
       "@prism/dsh-host-catalog/types": ["./packages/prism/host-catalog/src/types.ts"],

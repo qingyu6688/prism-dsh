@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@prism/dsh-client-ui-brand": "workspace:*",
+    "@prism/dsh-client-ui-catalog": "workspace:*",
     "@prism/dsh-host-catalog": "workspace:*",
     "@prism/dsh-host-service": "workspace:*",
     "@prism/dsh-tool-catalog": "workspace:*"

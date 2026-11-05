@@ -1,0 +1,489 @@
+/* 商品库页面、详情抽屉、商品和店铺表单、设置里的店铺。颜色都用 dsh 的设计变量，深色模式跟着变。 */
+
+/* ---------- 页面 ---------- */
+
+.page {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-base);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.listPane {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 clamp(20px, 3vw, 40px);
+}
+
+.pageHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 28px;
+  margin-bottom: 16px;
+}
+
+/* macOS 隐藏标题栏时页头要让出窗口按钮的高度，和 dsh 自己的页面一致 */
+:global([data-platform='darwin']) .pageHead {
+  padding-top: calc(28px + var(--dsh-frame-top-clearance, 0px));
+}
+
+.titleLine {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.search {
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+}
+
+.listBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: 20px;
+}
+
+.muted {
+  margin: 0;
+  font-size: 13px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.stateText {
+  margin: 48px 0;
+  text-align: center;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: var(--dsw-alias-state-error-primary);
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+.stateBox p {
+  margin: 0;
+}
+
+.emptyBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 48px;
+  padding: 40px 24px;
+  border: 1px dashed var(--dsw-alias-border-l2);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ---------- 列表 ---------- */
+
+/* 列表宽度不够（比如打开了详情抽屉）时只留商品、类目、成本、更新四列，避免横向滚动 */
+.table {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  container-type: inline-size;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(200px, 3fr) minmax(80px, 1.2fr) minmax(80px, 1.2fr) minmax(80px, 1fr) minmax(80px, 1fr) 96px;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 16px;
+  text-align: start;
+}
+
+@container (max-width: 48rem) {
+  .row {
+    grid-template-columns: minmax(160px, 3fr) minmax(72px, 1.2fr) minmax(72px, 1fr) 96px;
+  }
+
+  .wideOnly {
+    display: none;
+  }
+}
+
+.headRow {
+  height: 40px;
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+.rowsScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.dataRow {
+  border: 0;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dataRow:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.dataRow:focus-visible {
+  outline: 2px solid var(--dsw-alias-state-business-primary);
+  outline-offset: -2px;
+}
+
+.selectedRow {
+  background: var(--dsw-alias-interactive-bg-active);
+}
+
+.placeholderRow {
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  background: linear-gradient(90deg, transparent 16px, var(--dsw-alias-bg-skeleton) 16px, var(--dsw-alias-bg-skeleton) 40%, transparent 40%) center / 100% 12px no-repeat;
+}
+
+.productCell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.productName,
+.productCode,
+.cellText {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.productName {
+  font-weight: 500;
+}
+
+.productCode {
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.cellText {
+  color: var(--dsw-alias-label-secondary);
+}
+
+.numeric {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 详情抽屉 ---------- */
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  width: min(420px, 45%);
+  min-width: 320px;
+  height: 100%;
+  padding: 24px 20px;
+  overflow: auto;
+  border-left: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+.drawerHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.drawerTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.drawerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dangerButton {
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.errorText {
+  margin: 0;
+  font-size: 13px;
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-state-warn-tertiary);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.facts dt {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.drawerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionHead {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.points {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+
+.description {
+  margin: 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.skuTable,
+.shopTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.skuTable th,
+.skuTable td,
+.shopTable th,
+.shopTable td {
+  padding: 6px 8px;
+  text-align: start;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+
+.skuTable th,
+.shopTable th {
+  font-weight: 500;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* ---------- 表单 ---------- */
+
+.formModal {
+  width: min(560px, calc(100vw - 48px));
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.requiredMark {
+  margin-left: 2px;
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.fieldHint {
+  font-size: 12px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.fieldProblem {
+  font-size: 12px;
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  background: var(--dsw-alias-bg-base);
+  resize: vertical;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid var(--dsw-alias-state-business-primary);
+  outline-offset: -1px;
+}
+
+.formError {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: inherit;
+  background: var(--dsw-alias-bg-base);
+  cursor: pointer;
+}
+
+.picker[aria-expanded='true'] {
+  border-color: var(--dsw-alias-label-primary);
+}
+
+.pickerPlaceholder {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* ---------- 设置里的店铺 ---------- */
+
+.settingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+  color: var(--dsw-alias-label-primary);
+}
+
+.settingsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settingsTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.emptyLine {
+  margin: 0;
+  padding: 20px;
+  border: 1px dashed var(--dsw-alias-border-l2);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.rowActions {
+  width: 1%;
+  white-space: nowrap;
+  text-align: end;
+}

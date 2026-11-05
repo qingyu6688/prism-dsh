@@ -25,7 +25,6 @@ import type {
   ImportPreviewRequest,
   ImportProductsRequest,
   ImportResult,
-  PrismFailureDetails,
   Product,
   ProductDetail,
   ProductFilter,
@@ -42,13 +41,6 @@ import type {
 
 export type * from './types.ts'
 export { FILE_PATH, UPLOAD_PATH } from './files.ts'
-
-declare module '@deepseek-ai/dsh-typert-protocol' {
-  interface RemoteErrorDetailsMap {
-    /** 棱镜业务服务返回了错误，或者服务没在运行。 */
-    'prism/failed': PrismFailureDetails
-  }
-}
 
 declare module '@deepseek-ai/cordis' {
   interface Context {

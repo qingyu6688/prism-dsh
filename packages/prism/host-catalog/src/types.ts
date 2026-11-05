@@ -5,6 +5,7 @@
  * @module @prism/dsh-host-catalog/types
  */
 
+import type {} from '@deepseek-ai/dsh-typert-protocol'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 
 // ---------- 店铺 ----------
@@ -380,4 +381,11 @@ export interface PrismFailureDetails {
   /** `not_found`、`invalid_input`、`storage`、`unavailable`、`timeout` 等，见 `docs/prism/service-api.md` 第 4 节。 */
   readonly code: string
   readonly detail: JsonValue
+}
+
+declare module '@deepseek-ai/dsh-typert-protocol' {
+  interface RemoteErrorDetailsMap {
+    /** 棱镜业务服务返回了错误，或者服务没在运行。放在类型文件里，浏览器端只引用类型也能拿到。 */
+    'prism/failed': PrismFailureDetails
+  }
 }

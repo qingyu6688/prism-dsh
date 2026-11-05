@@ -72,3 +72,6 @@
     # 商品库、规则包、搜索的 Remote 接口和文件路由（docs/prism/design.md 第 12 节）
     - id: prism-catalog
       name: '@prism/dsh-host-catalog'
+    # 商品库页面和设置里的店铺
+    - id: ui-prism-catalog
+      name: '@prism/dsh-client-ui-catalog'
