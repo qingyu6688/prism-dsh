@@ -45,6 +45,10 @@
   gap: 8px;
 }
 
+.pushEnd {
+  margin-left: auto;
+}
+
 .titleLine {
   display: flex;
   align-items: baseline;
@@ -357,6 +361,7 @@
 .skuTable th,
 .shopTable th {
   font-weight: 500;
+  white-space: nowrap;
   color: var(--dsw-alias-label-tertiary);
 }
 
@@ -823,4 +828,98 @@
 
 .productResult:hover {
   background: var(--dsw-alias-interactive-bg-hover);
+}
+
+/* ---------- 规则包 ---------- */
+
+.originCell {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.wrapCell {
+  font-size: 12px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.noticeTitle {
+  margin: 0 0 4px;
+}
+
+/* ---------- 全局搜索 ---------- */
+
+.searchGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.searchList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.searchRow .productName {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.searchRow .productCode {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.searchRowActive {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.searchThumb {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+/* ---------- 聊天记录里的商品引用（和 dsh 的文件、会话引用标签一致） ---------- */
+
+.productChip {
+  display: inline;
+  max-width: 100%;
+  margin: 0 2px;
+  color: var(--dsw-alias-state-business-primary);
+  font-weight: 500;
+  white-space: inherit;
+  overflow-wrap: anywhere;
+}
+
+.productChipIcon {
+  width: 1em;
+  height: 1em;
+  margin-right: 4px;
+  vertical-align: -0.125em;
 }

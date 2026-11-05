@@ -7,7 +7,7 @@
 import type {
   Asset, AssetFilter, AssetPage, IdRequest, ImportAssetFilesRequest, ImportAssetFilesResult, ImportPreview,
   ImportPreviewRequest, ImportProductsRequest, ImportResult, Product, ProductDetail, ProductFilter, ProductInput,
-  ProductPage, SavedMapping, Shop, ShopInput, TagCount, UploadedFile,
+  ProductPage, RuleKind, RulesOverview, SavedMapping, SearchResults, Shop, ShopInput, TagCount, UploadedFile, ImportedRule,
 } from '@prism/dsh-host-catalog/types'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 
@@ -18,8 +18,9 @@ export class CatalogRequestError extends Error {
   /**
    * @param message - 给用户看的说明。
    * @param code - 失败分类。
+   * @param detail - 服务给的细节，如规则文件的问题列表；没有时为 `null`。
    */
-  constructor(message: string, readonly code: string) {
+  constructor(message: string, readonly code: string, readonly detail: unknown = null) {
     super(message)
   }
 }
@@ -48,6 +49,10 @@ export interface PrismRemote {
   starAsset(request: { readonly id: string; readonly starred: boolean }): Promise<RemoteResult<void>>
   linkAsset(request: { readonly id: string; readonly productId: string | null }): Promise<RemoteResult<void>>
   deleteAsset(request: IdRequest): Promise<RemoteResult<void>>
+  listRules(): Promise<RemoteResult<RulesOverview>>
+  importRuleFile(request: { readonly path: string }): Promise<RemoteResult<ImportedRule>>
+  removeUserRule(request: { readonly kind: RuleKind; readonly id: string }): Promise<RemoteResult<{ readonly removed: boolean }>>
+  search(request: { readonly keyword: string }): Promise<RemoteResult<SearchResults>>
 }
 
 /** 组件用的接口：成功返回值，失败抛 {@link CatalogRequestError}。 */
@@ -76,6 +81,13 @@ export interface CatalogApi {
   starAsset(id: string, starred: boolean): Promise<void>
   linkAsset(id: string, productId: string | null): Promise<void>
   deleteAsset(id: string): Promise<void>
+  listRules(): Promise<RulesOverview>
+  /** 导入上传到 Host 的规则文件。校验不通过时错误的 `detail` 是问题列表 `[{ path, message }]`。 */
+  importRuleFile(path: string): Promise<ImportedRule>
+  /** 删除用户导入的版本，回到内置版本。 */
+  removeUserRule(kind: RuleKind, id: string): Promise<boolean>
+  /** 全局搜索：商品、素材各取前 5 条。 */
+  search(keyword: string): Promise<SearchResults>
 }
 
 /** 上传路由，和 `@prism/dsh-host-catalog` 的 `UPLOAD_PATH` 一致（那个包是 Host 端，浏览器里不能引它的值）。 */
@@ -133,7 +145,7 @@ export async function unwrap<T>(pending: Promise<RemoteResult<T>>, unreachable: 
   const result = await pending
   if (result.ok) return result.value
   const { error } = result
-  if (error.code === 'prism/failed') throw new CatalogRequestError(error.message, error.details.code)
+  if (error.code === 'prism/failed') throw new CatalogRequestError(error.message, error.details.code, error.details.detail)
   // 网关、连接层的错误信息是英文的技术描述，换成一句能看懂的话，原始码留着排查
   throw new CatalogRequestError(`${unreachable}（${error.code}）`, error.code)
 }
@@ -174,6 +186,10 @@ export function createCatalogApi(
     starAsset: (id, starred) => run(remote.starAsset({ id, starred })),
     linkAsset: (id, productId) => run(remote.linkAsset({ id, productId })),
     deleteAsset: id => run(remote.deleteAsset({ id })),
+    listRules: () => run(remote.listRules()),
+    importRuleFile: path => run(remote.importRuleFile({ path })),
+    removeUserRule: async (kind, id) => (await run(remote.removeUserRule({ kind, id }))).removed,
+    search: keyword => run(remote.search({ keyword })),
   }
 }
 

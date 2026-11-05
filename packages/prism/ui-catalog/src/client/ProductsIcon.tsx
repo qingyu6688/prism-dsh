@@ -35,6 +35,21 @@ export function AssetsIcon({ size }: PropsRuntime<'sidebar.panellist'>) {
 }
 
 /**
+ * 设置里"规则包"的图标：一份带勾的清单。
+ * @param props - 设置页给的尺寸。
+ * @returns 装饰性图标。
+ */
+export function RulesIcon({ size }: { readonly size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 3.5h10A2.5 2.5 0 0 1 19.5 6v12a2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 18V6A2.5 2.5 0 0 1 7 3.5z" />
+      <path d="m8 9 1.5 1.5L12 8M8 15l1.5 1.5L12 14M14.5 9.5H16M14.5 15.5H16" />
+    </svg>
+  )
+}
+
+/**
  * 设置里"店铺"的图标：一个店面。
  * @param props - 设置页给的尺寸。
  * @returns 装饰性图标。

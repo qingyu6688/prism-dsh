@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import { Button, IconPlusOutlineRegular, IconSearchOutlineRegular, Input, SegmentedControl } from '@deepseek-ai/dsh-client-ui-primitives'
+import type { CatalogNavigator } from './navigator.ts'
 import type { Product } from '@prism/dsh-host-catalog/types'
 import type { CatalogApi } from './api.ts'
 import { formatDate, formatMoney } from './format.ts'
@@ -21,7 +22,11 @@ const SEARCH_DELAY_MS = 250
 export interface ProductsPageProps {
   readonly api: CatalogApi
   readonly t: Translate
+  /** 全局搜索框和跳转；不传时页头没有搜索按钮。 */
+  readonly navigator?: CatalogNavigator | undefined
 }
+
+const NO_NAVIGATOR = { subscribe: () => () => undefined, snapshot: () => null }
 
 type Status = 'active' | 'archived'
 
@@ -30,7 +35,7 @@ type Status = 'active' | 'archived'
  * @param props - 接口和文案。
  * @returns 页面。
  */
-export function ProductsPage({ api, t }: ProductsPageProps) {
+export function ProductsPage({ api, t, navigator }: ProductsPageProps) {
   const rows = useMemo(() => new ProductRows(filter => api.listProducts(filter)), [api])
   const snapshot = useSyncExternalStore(rows.subscribe, rows.snapshot)
   const [search, setSearch] = useState('')
@@ -40,6 +45,13 @@ export function ProductsPage({ api, t }: ProductsPageProps) {
   const [revision, setRevision] = useState(0)
   const [form, setForm] = useState<{ open: boolean; product?: Product | undefined }>({ open: false })
   const [importing, setImporting] = useState(false)
+  const focus = useSyncExternalStore(navigator?.subscribe ?? NO_NAVIGATOR.subscribe,
+    () => navigator?.snapshot().product ?? NO_NAVIGATOR.snapshot())
+
+  // 从全局搜索跳过来：打开这个商品的详情（归档的商品也能打开）
+  useEffect(() => {
+    if (focus !== null) setSelectedId(focus.value)
+  }, [focus])
 
   useEffect(() => {
     const timer = setTimeout(() => { setKeyword(search) }, SEARCH_DELAY_MS)
@@ -147,6 +159,10 @@ export function ProductsPage({ api, t }: ProductsPageProps) {
             {snapshot.status === 'ready' ? <span className={css.muted}>{t('products.count', { count: snapshot.total })}</span> : null}
           </div>
           <div className={css.headActions}>
+            {navigator === undefined ? null : (
+              <Button variant="ghost" size="sm" icon={<IconSearchOutlineRegular size={14} />} aria-label={t('search.open')}
+                title={t('search.open')} onClick={() => { navigator.openSearch() }} />
+            )}
             <Button variant="outline" size="sm" onClick={() => { setImporting(true) }}>{t('products.import')}</Button>
             <Button variant="primary" size="sm" icon={<IconPlusOutlineRegular size={14} />}
               onClick={() => { setForm({ open: true }) }}>{t('products.new')}</Button>

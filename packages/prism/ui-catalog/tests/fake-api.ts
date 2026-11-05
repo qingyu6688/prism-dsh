@@ -4,7 +4,7 @@
  */
 import { vi, type Mock } from 'vitest'
 import type {
-  Asset, ImportPreview, ImportProductsRequest, ImportResult, Product, ProductDetail, ProductInput, Shop, ShopInput,
+  Asset, ImportPreview, ImportProductsRequest, ImportResult, Product, ProductDetail, ProductInput, RulesOverview, Shop, ShopInput,
 } from '@prism/dsh-host-catalog/types'
 import { CatalogRequestError, type CatalogApi } from '../src/client/api.ts'
 
@@ -15,6 +15,37 @@ export type FakeApi = { [K in keyof CatalogApi]: Mock<CatalogApi[K]> } & {
   assets: Asset[]
   /** 最近一次导入商品的请求。 */
   lastImport: ImportProductsRequest | undefined
+  rules: RulesOverview
+}
+
+/** 规则总览：内置的淘宝规则包、用户导入盖过内置的亚马逊规则包、一个词表、一个加载失败的文件。 */
+export const RULES: RulesOverview = {
+  packs: [
+    {
+      origin: { type: 'user', path: 'D:/data/rules/packs/amazon.json' },
+      shadowedRevision: 1,
+      value: {
+        id: 'amazon', revision: 2, name: { 'zh-CN': '亚马逊', en: 'Amazon' }, status: 'verified', market: 'cross_border',
+        text: { title: { maxLength: 200, unit: 'char' } },
+        images: { main: { minSide: 1000, aspectRatios: [], whiteBackground: 'first' } },
+      },
+    },
+    {
+      origin: { type: 'builtin' },
+      shadowedRevision: null,
+      value: {
+        id: 'taobao', revision: 1, name: { 'zh-CN': '淘宝 / 天猫', en: 'Taobao' }, status: 'draft', market: 'domestic',
+        text: { title: { maxLength: 60, unit: 'cjk_double' } },
+        images: { main: { minSide: 800, aspectRatios: ['1:1', '3:4'], whiteBackground: 'none' } },
+      },
+    },
+  ],
+  wordLists: [{
+    origin: { type: 'builtin' }, shadowedRevision: null,
+    value: { id: 'ad_superlatives_zh', revision: 1, name: { 'zh-CN': '广告法极限词' }, status: 'draft' },
+  }],
+  exportTemplates: [],
+  problems: [{ file: 'D:/data/rules/packs/broken.json', problems: [{ path: 'formatVersion', message: '缺少必填字段 formatVersion' }] }],
 }
 
 /** 预览固定返回的表格：表头"款号、品名、采购价"，3 行。 */
@@ -71,6 +102,7 @@ export function fakeApi(initial: Product[] = [], shops: Shop[] = [], assets: Ass
   let next = 100
   const state = {
     products: [...initial], shops: [...shops], assets: [...assets], lastImport: undefined as ImportProductsRequest | undefined,
+    rules: RULES,
   }
   const toProduct = (id: string, input: ProductInput, archived = false): Product => ({
     id, name: input.name, code: input.code ?? null, category: input.category ?? null, brand: input.brand ?? null,
@@ -199,5 +231,15 @@ export function fakeApi(initial: Product[] = [], shops: Shop[] = [], assets: Ass
       state.assets = state.assets.filter(a => a.id !== id)
       return Promise.resolve()
     }),
+    listRules: vi.fn<CatalogApi['listRules']>(() => Promise.resolve(state.rules)),
+    importRuleFile: vi.fn<CatalogApi['importRuleFile']>(() => Promise.resolve({ kind: 'rule_pack', id: 'amazon', revision: 3 })),
+    removeUserRule: vi.fn<CatalogApi['removeUserRule']>((kind, id) => {
+      state.rules = { ...state.rules, packs: state.rules.packs.filter(row => !(kind === 'rule_pack' && row.value.id === id)) }
+      return Promise.resolve(true)
+    }),
+    search: vi.fn<CatalogApi['search']>(keyword => Promise.resolve({
+      products: state.products.filter(p => p.name.includes(keyword)).slice(0, 5),
+      assets: state.assets.filter(a => (a.title ?? '').includes(keyword) || a.tags.includes(keyword)).slice(0, 5),
+    })),
   })
 }

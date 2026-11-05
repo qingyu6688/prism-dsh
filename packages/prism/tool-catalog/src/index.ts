@@ -126,7 +126,8 @@ export function apply(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'prism_get_product',
     description: '按 id 取棱镜商品库里一个商品的详情：名称、货号、类目、品牌、说明、卖点、参数、成本、目标市场、规格（SKU）、'
-      + '素材和文案数量。成本和价格的单位是分。id 用 prism_search_products 查到。',
+      + '素材和文案数量。成本和价格的单位是分。id 用 prism_search_products 查到；'
+      + '用户消息里的 @[商品名称](prism-product:<id>) 是用户引用的商品，括号里的 id 可以直接用。',
     parameters: {
       id: { type: 'string', required: true, description: '商品 id' },
     },

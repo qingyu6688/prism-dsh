@@ -1,10 +1,11 @@
 /** 素材库页面：缩略图网格、搜索、按标签和收藏筛选、导入图片、右侧详情面板。 */
 import clsx from 'clsx'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Button, Checkbox, IconPlusOutlineRegular, IconSearchOutlineRegular, Input } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { Asset, TagCount } from '@prism/dsh-host-catalog/types'
 import { fileUrl, messageOf, type CatalogApi } from './api.ts'
 import { AssetPanel } from './AssetPanel.tsx'
+import type { CatalogNavigator } from './navigator.ts'
 import { Picker } from './Picker.tsx'
 import type { Translate } from './ProductForm.tsx'
 import { StarButton } from './StarButton.tsx'
@@ -20,7 +21,11 @@ const ALL_TAGS = '\u0000all'
 export interface AssetsPageProps {
   readonly api: CatalogApi
   readonly t: Translate
+  /** 全局搜索框和跳转；不传时页头没有搜索按钮。 */
+  readonly navigator?: CatalogNavigator | undefined
 }
+
+const NO_NAVIGATOR = { subscribe: () => () => undefined, snapshot: () => null }
 
 type Load =
   | { readonly status: 'loading' }
@@ -39,7 +44,7 @@ interface ImportReport {
  * @param props - 接口和文案。
  * @returns 页面。
  */
-export function AssetsPage({ api, t }: AssetsPageProps) {
+export function AssetsPage({ api, t, navigator }: AssetsPageProps) {
   const [search, setSearch] = useState('')
   const [keyword, setKeyword] = useState('')
   const [tag, setTag] = useState<string | null>(null)
@@ -52,6 +57,17 @@ export function AssetsPage({ api, t }: AssetsPageProps) {
   const [report, setReport] = useState<ImportReport | null>(null)
   const [reloads, setReloads] = useState(0)
   const fileInput = useRef<HTMLInputElement | null>(null)
+  const request = useSyncExternalStore(navigator?.subscribe ?? NO_NAVIGATOR.subscribe,
+    () => navigator?.snapshot().assetKeyword ?? NO_NAVIGATOR.snapshot())
+
+  // 从全局搜索跳过来：用同一个关键词筛选，清掉其他筛选条件
+  useEffect(() => {
+    if (request === null) return
+    setSearch(request.value)
+    setKeyword(request.value)
+    setTag(null)
+    setStarredOnly(false)
+  }, [request])
 
   useEffect(() => {
     const timer = setTimeout(() => { setKeyword(search) }, SEARCH_DELAY_MS)
@@ -211,6 +227,10 @@ export function AssetsPage({ api, t }: AssetsPageProps) {
             <h1 className={css.pageTitle}>{t('assets.title')}</h1>
             {load.status === 'ready' ? <span className={css.muted}>{t('assets.count', { count: load.total })}</span> : null}
           </div>
+          {navigator === undefined ? null : (
+            <Button variant="ghost" size="sm" icon={<IconSearchOutlineRegular size={14} />} aria-label={t('search.open')}
+              title={t('search.open')} className={css.pushEnd} onClick={() => { navigator.openSearch() }} />
+          )}
           <input ref={fileInput} type="file" accept={IMAGE_ACCEPT} multiple hidden aria-label={t('assets.import')}
             onChange={(event) => { void importFiles([...(event.target.files ?? [])]); event.target.value = '' }} />
           <Button variant="primary" size="sm" icon={<IconPlusOutlineRegular size={14} />} disabled={progress !== null}
