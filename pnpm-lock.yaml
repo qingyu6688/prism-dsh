@@ -2775,6 +2775,9 @@ importers:
       '@prism/dsh-client-ui-brand':
         specifier: workspace:*
         version: link:../../prism/ui-brand
+      '@prism/dsh-host-service':
+        specifier: workspace:*
+        version: link:../../prism/host-service
 
   packages/bundle/sdk-app:
     dependencies:
@@ -13891,6 +13894,25 @@ importers:
       '@deepseek-ai/dsh-system-prompt':
         specifier: workspace:*
         version: link:../../core/system-prompt
+
+  packages/prism/host-service:
+    dependencies:
+      '@deepseek-ai/dsh-home-paths':
+        specifier: workspace:*
+        version: link:../../util/home-paths
+      '@deepseek-ai/schemastery':
+        specifier: link:../../../vendor/schemastery
+        version: link:../../../vendor/schemastery
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:~
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-subprocess':
+        specifier: workspace:*
+        version: link:../../subprocess/subprocess
+      '@deepseek-ai/dsh-subprocess-local':
+        specifier: workspace:*
+        version: link:../../subprocess/subprocess-local
 
   packages/prism/ui-brand:
     devDependencies:

@@ -1,0 +1,35 @@
+{
+  "$schema": "../schema/rule-pack.schema.json",
+  "kind": "rule_pack",
+  "formatVersion": 1,
+  "id": "taobao",
+  "revision": 1,
+  "name": {
+    "zh-CN": "淘宝 / 天猫",
+    "en": "Taobao / Tmall"
+  },
+  "status": "draft",
+  "updatedAt": "2026-11-04",
+  "notes": "数值根据公开资料整理，未经真实后台核对，使用前请以平台后台为准。天猫部分类目要求第 5 张主图为白底，暂未单独建天猫规则包。",
+  "market": "domestic",
+  "defaultLanguage": "zh-CN",
+  "images": {
+    "main": {
+      "minCount": 1,
+      "maxCount": 5,
+      "minSide": 800,
+      "aspectRatios": ["1:1", "3:4"],
+      "formats": ["jpeg", "png"],
+      "maxBytes": 3145728
+    }
+  },
+  "text": {
+    "title": {
+      "maxLength": 60,
+      "unit": "cjk_double"
+    }
+  },
+  "bannedWords": {
+    "lists": ["ad_superlatives_zh"]
+  }
+}

@@ -1,0 +1,34 @@
+# cargo-deny 配置：只允许和 MIT 兼容的宽松许可证。
+# 本地运行：cargo deny check licenses
+
+[graph]
+all-features = false
+
+[licenses]
+confidence-threshold = 0.9
+allow = [
+  "MIT",
+  "MIT-0",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "0BSD",
+  "CC0-1.0",
+  "BSL-1.0",
+  "Unicode-3.0",
+  "Unicode-DFS-2016",
+  "CDLA-Permissive-2.0",
+  # Tauri 间接依赖的 HTML / CSS 解析库用 MPL-2.0。MPL 是文件级弱著作权，
+  # 只要求修改过的那些文件开源，和 MIT 项目一起分发没有问题。
+  "MPL-2.0",
+]
+
+[licenses.private]
+# 工作区里的 crate 都是 publish = false，不检查自己的许可证字段以外的东西
+ignore = true
+
+[bans]
+multiple-versions = "allow"

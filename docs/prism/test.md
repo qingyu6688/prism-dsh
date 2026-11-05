@@ -1,5 +1,43 @@
 # 棱镜（基于 dsh）测试记录
 
+## 2026-11-05 · D2 prism-service 骨架
+
+### Rust（`native/prism-service`）
+
+| 检查 | 结果 |
+|---|---|
+| `cargo test --workspace` | 289 个通过，0 失败：原仓库搬来的 267 个在新位置全部通过，新增 22 个 |
+| 新增：协议解析 | 合法请求、通知、缺省参数；非 JSON、数组、非法 id、版本不对、缺 method、参数是数组，各自返回对应错误码；输出单行 |
+| 新增：按行读取 | CRLF、末行没有换行、恰好等于上限、超过上限后下一行照常读 |
+| 新增：服务循环（进程内） | ping、version（迁移版本 6）、错误码、通知不回响应、超大消息被拒后继续工作、50 个并发请求按 id 全部对上、shutdown 先回响应再退出、关闭输入前发出的请求仍有响应 |
+| 新增：可执行文件 | 自动创建数据目录；stdin 关闭退出码 0；同一目录第二个进程退出码 3，第一个退出后可以再启动；缺参数退出码 2；数据目录建不了退出码 4 |
+| `cargo clippy --workspace --all-targets -- -D warnings` | 无警告 |
+| `cargo fmt --all -- --check` | 通过 |
+| `cargo-deny check` | advisories、bans、licenses、sources 全部通过（`Unicode-DFS-2016` 许可未用到的提示是原有配置） |
+
+### Host 插件（`packages/prism/host-service`）
+
+`tests/service.spec.ts` 用 dsh 真实的子进程服务（`subprocess-local`）拉起假服务 `tests/fake-service.ts`，16 个用例全部通过，连跑 3 次稳定：
+
+- 调用、20 个并发调用、业务错误的分类和说明、不存在的方法、超时、取消、服务发来通知
+- 调用期间进程退出：进行中的调用报 `exited`，重启期间的新调用等新进程就绪
+- 输出无法解析：结束进程并重启
+- 启动时退出一次后重启成功；30 秒内退出 3 次后状态 `failed`，错误说明里带服务最后一条 ERROR 日志
+- 找不到可执行文件时插件照常加载，调用报 `unavailable`
+- 卸载时关闭 stdin，服务正常退出
+- 已构建 Rust 服务时，对真 `prism-service` 跑 ping 和 version
+
+`build:artifacts` 8 项全部通过。
+
+### 桌面端验收（开发版）
+
+| 检查 | 结果 |
+|---|---|
+| 启动 | Host 拉起 `target/debug/prism-service.exe --data-dir …/development/home/prism --log-level info`，数据目录里有 `prism.db` 和目录锁 |
+| 崩溃重启 | 强制结束服务进程，约 2 秒后出现新进程，参数和数据目录不变 |
+
+还没验证：打包后的安装版里找可执行文件（D5 做平台包时一起验）。
+
 ## 2026-11-05 · D1 组合与品牌
 
 ### 全量测试和上游对照

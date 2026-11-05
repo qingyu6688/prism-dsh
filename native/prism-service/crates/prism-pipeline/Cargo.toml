@@ -1,0 +1,28 @@
+[package]
+name = "prism-pipeline"
+description = "裂变编排"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+prism-catalog.workspace = true
+prism-core.workspace = true
+prism-engine.workspace = true
+prism-imaging.workspace = true
+prism-store.workspace = true
+prism-provider.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+mock-image-api = { path = "../mock-image-api" }
+tempfile.workspace = true
+
+[lints]
+workspace = true

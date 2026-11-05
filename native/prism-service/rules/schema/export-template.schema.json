@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExportTemplate",
+  "description": "一张刊登表格的样子（详细设计 10.7）。",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "columns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ExportColumn"
+      }
+    },
+    "formatVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "id": {
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/ResourceKind"
+    },
+    "name": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "platform": {
+      "description": "适用的平台，设置页分组用",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "preamble": {
+      "description": "表头上面的固定行",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "revision": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "rowPer": {
+      "description": "每个商品一行还是每个规格一行，由业务模块据此组织数据",
+      "$ref": "#/$defs/RowPer"
+    },
+    "sheetName": {
+      "description": "工作表名称",
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "$ref": "#/$defs/Status"
+    },
+    "updatedAt": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "formatVersion",
+    "id",
+    "revision",
+    "name",
+    "status",
+    "updatedAt",
+    "sheetName",
+    "rowPer",
+    "columns"
+  ],
+  "$defs": {
+    "CellFormat": {
+      "description": "单元格格式。",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "integer",
+            "decimal",
+            "boolean"
+          ]
+        },
+        {
+          "description": "按文本写，保留前导 0",
+          "type": "string",
+          "const": "text"
+        },
+        {
+          "description": "数据是\"分\"，写成两位小数",
+          "type": "string",
+          "const": "money"
+        }
+      ]
+    },
+    "ExportColumn": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "description": "取不到值时用的默认值",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "format": {
+          "$ref": "#/$defs/CellFormat",
+          "default": "text"
+        },
+        "header": {
+          "type": "string"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "separator": {
+          "description": "数据是列表时的连接符，默认 `; `",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "description": "`const:固定值`，或 `product`、`sku`、`copy`、`image`、`shop` 开头的路径，如 `image.main[0]`",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "header",
+        "source"
+      ]
+    },
+    "ResourceKind": {
+      "description": "文件类型。",
+      "type": "string",
+      "enum": [
+        "rule_pack",
+        "word_list",
+        "export_template"
+      ]
+    },
+    "RowPer": {
+      "type": "string",
+      "enum": [
+        "product",
+        "sku"
+      ]
+    },
+    "Status": {
+      "description": "是否经过真实后台核对。",
+      "oneOf": [
+        {
+          "description": "根据公开资料整理，未经真实后台核对",
+          "type": "string",
+          "const": "draft"
+        },
+        {
+          "description": "已在真实后台核对",
+          "type": "string",
+          "const": "verified"
+        }
+      ]
+    }
+  }
+}

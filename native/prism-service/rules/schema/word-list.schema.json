@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WordList",
+  "description": "多个平台共用的词表，如广告法极限词。",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "formatVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "id": {
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/ResourceKind"
+    },
+    "language": {
+      "description": "词的语言，如 `zh`、`en`",
+      "type": "string"
+    },
+    "match": {
+      "$ref": "#/$defs/MatchMode"
+    },
+    "name": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "revision": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "$ref": "#/$defs/Status"
+    },
+    "updatedAt": {
+      "type": "string"
+    },
+    "words": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/WordEntry"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "formatVersion",
+    "id",
+    "revision",
+    "name",
+    "status",
+    "updatedAt",
+    "language",
+    "match",
+    "words"
+  ],
+  "$defs": {
+    "MatchMode": {
+      "description": "词的匹配方式。",
+      "oneOf": [
+        {
+          "description": "子串匹配，用于中文",
+          "type": "string",
+          "const": "substring"
+        },
+        {
+          "description": "整词匹配、不区分大小写，用于英文等有空格分词的语言",
+          "type": "string",
+          "const": "word"
+        }
+      ]
+    },
+    "ResourceKind": {
+      "description": "文件类型。",
+      "type": "string",
+      "enum": [
+        "rule_pack",
+        "word_list",
+        "export_template"
+      ]
+    },
+    "Severity": {
+      "oneOf": [
+        {
+          "description": "必须改",
+          "type": "string",
+          "const": "error"
+        },
+        {
+          "description": "提示风险",
+          "type": "string",
+          "const": "warning"
+        }
+      ]
+    },
+    "Status": {
+      "description": "是否经过真实后台核对。",
+      "oneOf": [
+        {
+          "description": "根据公开资料整理，未经真实后台核对",
+          "type": "string",
+          "const": "draft"
+        },
+        {
+          "description": "已在真实后台核对",
+          "type": "string",
+          "const": "verified"
+        }
+      ]
+    },
+    "WordEntry": {
+      "type": "object",
+      "properties": {
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "suggestion": {
+          "description": "替换建议",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "word": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "word",
+        "severity"
+      ]
+    }
+  }
+}

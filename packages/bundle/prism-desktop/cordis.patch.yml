@@ -66,3 +66,6 @@
 - insert:
     - id: ui-brand-prism
       name: '@prism/dsh-client-ui-brand'
+    # 棱镜业务服务（Rust 的 prism-service 子进程），数据目录默认是 Harness home 下的 prism
+    - id: prism-service
+      name: '@prism/dsh-host-service'

@@ -1,0 +1,80 @@
+{
+  "$schema": "../schema/rule-pack.schema.json",
+  "kind": "rule_pack",
+  "formatVersion": 1,
+  "id": "amazon",
+  "revision": 1,
+  "name": {
+    "zh-CN": "亚马逊",
+    "en": "Amazon"
+  },
+  "status": "draft",
+  "updatedAt": "2026-11-04",
+  "notes": "数值根据公开资料整理，未经真实后台核对，使用前请以平台后台为准。标题上限按大多数类目，部分类目更短；必填属性因类目而异，这里只列通用的品牌。",
+  "market": "cross_border",
+  "sites": ["US", "CA", "MX", "UK", "DE", "FR", "IT", "ES", "JP", "AU"],
+  "defaultLanguage": "en-US",
+  "images": {
+    "main": {
+      "minCount": 1,
+      "maxCount": 9,
+      "minSide": 1000,
+      "maxSide": 10000,
+      "formats": ["jpeg", "png"],
+      "maxBytes": 10485760,
+      "whiteBackground": "first",
+      "minProductRatio": 0.85
+    }
+  },
+  "text": {
+    "title": {
+      "maxLength": 200,
+      "unit": "char",
+      "forbiddenChars": "!$?_{}^¬¦",
+      "maxWordRepeat": 2
+    },
+    "bullets": {
+      "count": 5,
+      "maxLength": 500,
+      "unit": "char"
+    },
+    "description": {
+      "maxLength": 2000,
+      "unit": "char"
+    },
+    "keywords": {
+      "maxLength": 249,
+      "unit": "byte"
+    }
+  },
+  "requiredAttributes": [
+    {
+      "key": "brand",
+      "name": {
+        "zh-CN": "品牌",
+        "en": "Brand"
+      }
+    }
+  ],
+  "bannedWords": {
+    "lists": ["promo_en"],
+    "match": "word",
+    "words": [
+      {
+        "word": "FDA approved",
+        "severity": "error",
+        "note": "不能声称获得 FDA 批准"
+      },
+      {
+        "word": "antibacterial",
+        "severity": "warning",
+        "note": "抗菌类宣称在美国属于农药宣称，需要相应注册"
+      },
+      {
+        "word": "eco-friendly",
+        "severity": "warning",
+        "note": "环保类说法需要有认证支撑"
+      }
+    ]
+  }
+}

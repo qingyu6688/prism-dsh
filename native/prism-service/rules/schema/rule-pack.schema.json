@@ -1,0 +1,503 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RulePack",
+  "description": "一个平台的规则包。",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "指向 JSON Schema，只给编辑器用",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "bannedWords": {
+      "$ref": "#/$defs/BannedWords",
+      "default": {
+        "lists": [],
+        "match": "substring",
+        "words": []
+      }
+    },
+    "defaultLanguage": {
+      "type": "string"
+    },
+    "formatVersion": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "id": {
+      "description": "平台标识，和店铺的 `platform` 一致",
+      "type": "string"
+    },
+    "images": {
+      "$ref": "#/$defs/ImageRules"
+    },
+    "kind": {
+      "$ref": "#/$defs/ResourceKind"
+    },
+    "market": {
+      "$ref": "#/$defs/Market"
+    },
+    "name": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requiredAttributes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RequiredAttribute"
+      }
+    },
+    "revision": {
+      "description": "修订号，每次修改加 1",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "sites": {
+      "description": "站点，两位地区代码；国内平台为空",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "string"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "$ref": "#/$defs/Status"
+    },
+    "text": {
+      "$ref": "#/$defs/TextRules",
+      "default": {}
+    },
+    "updatedAt": {
+      "description": "最后修改日期 `YYYY-MM-DD`",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "formatVersion",
+    "id",
+    "revision",
+    "name",
+    "status",
+    "updatedAt",
+    "market",
+    "defaultLanguage",
+    "images"
+  ],
+  "$defs": {
+    "BannedWords": {
+      "type": "object",
+      "properties": {
+        "lists": {
+          "description": "引用的词表 ID",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "match": {
+          "description": "下面 `words` 的匹配方式",
+          "$ref": "#/$defs/MatchMode",
+          "default": "substring"
+        },
+        "words": {
+          "description": "平台独有的词",
+          "type": "array",
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/WordEntry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "BulletRules": {
+      "description": "五点描述这类分条文案。",
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "maxLength": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "unit": {
+          "$ref": "#/$defs/LengthUnit"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "count",
+        "maxLength",
+        "unit"
+      ]
+    },
+    "ImageFileFormat": {
+      "type": "string",
+      "enum": [
+        "jpeg",
+        "png",
+        "webp"
+      ]
+    },
+    "ImageRules": {
+      "type": "object",
+      "properties": {
+        "detail": {
+          "description": "详情图",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImageSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "main": {
+          "description": "主图 / 轮播图",
+          "$ref": "#/$defs/ImageSpec"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "main"
+      ]
+    },
+    "ImageSpec": {
+      "type": "object",
+      "properties": {
+        "aspectRatios": {
+          "description": "允许的宽高比，如 `1:1`、`3:4`；空表示不限",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "formats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ImageFileFormat"
+          }
+        },
+        "maxBytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "maxCount": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "maxSide": {
+          "description": "较长边的最大像素",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "minCount": {
+          "type": "integer",
+          "format": "uint32",
+          "default": 1,
+          "minimum": 0
+        },
+        "minProductRatio": {
+          "description": "商品占画面比例下限（0～1）",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "minSide": {
+          "description": "较长边的最小像素",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "whiteBackground": {
+          "$ref": "#/$defs/WhiteBackground",
+          "default": "none"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "maxCount",
+        "formats"
+      ]
+    },
+    "LengthUnit": {
+      "description": "长度单位（详细设计 10.3）。",
+      "oneOf": [
+        {
+          "description": "字符数",
+          "type": "string",
+          "const": "char"
+        },
+        {
+          "description": "UTF-8 字节数",
+          "type": "string",
+          "const": "byte"
+        },
+        {
+          "description": "中日韩字符算 2，其他算 1",
+          "type": "string",
+          "const": "cjk_double"
+        }
+      ]
+    },
+    "Market": {
+      "type": "string",
+      "enum": [
+        "cross_border",
+        "domestic"
+      ]
+    },
+    "MatchMode": {
+      "description": "词的匹配方式。",
+      "oneOf": [
+        {
+          "description": "子串匹配，用于中文",
+          "type": "string",
+          "const": "substring"
+        },
+        {
+          "description": "整词匹配、不区分大小写，用于英文等有空格分词的语言",
+          "type": "string",
+          "const": "word"
+        }
+      ]
+    },
+    "RequiredAttribute": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "name": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "name"
+      ]
+    },
+    "ResourceKind": {
+      "description": "文件类型。",
+      "type": "string",
+      "enum": [
+        "rule_pack",
+        "word_list",
+        "export_template"
+      ]
+    },
+    "Severity": {
+      "oneOf": [
+        {
+          "description": "必须改",
+          "type": "string",
+          "const": "error"
+        },
+        {
+          "description": "提示风险",
+          "type": "string",
+          "const": "warning"
+        }
+      ]
+    },
+    "Status": {
+      "description": "是否经过真实后台核对。",
+      "oneOf": [
+        {
+          "description": "根据公开资料整理，未经真实后台核对",
+          "type": "string",
+          "const": "draft"
+        },
+        {
+          "description": "已在真实后台核对",
+          "type": "string",
+          "const": "verified"
+        }
+      ]
+    },
+    "TextLimit": {
+      "type": "object",
+      "properties": {
+        "forbiddenChars": {
+          "description": "不允许出现的字符，逐个字符算",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "maxLength": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "maxWordRepeat": {
+          "description": "同一个词最多出现几次",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "minLength": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        },
+        "unit": {
+          "$ref": "#/$defs/LengthUnit"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "maxLength",
+        "unit"
+      ]
+    },
+    "TextRules": {
+      "description": "各文案字段的限制，不写表示没有限制。",
+      "type": "object",
+      "properties": {
+        "bullets": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BulletRules"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextLimit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "keywords": {
+          "description": "搜索关键词（如 Amazon 后台搜索词）",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextLimit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextLimit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "WhiteBackground": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "none"
+          ]
+        },
+        {
+          "description": "首图必须白底",
+          "type": "string",
+          "const": "first"
+        },
+        {
+          "description": "全部白底",
+          "type": "string",
+          "const": "all"
+        }
+      ]
+    },
+    "WordEntry": {
+      "type": "object",
+      "properties": {
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "suggestion": {
+          "description": "替换建议",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "word": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "word",
+        "severity"
+      ]
+    }
+  }
+}

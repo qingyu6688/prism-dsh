@@ -1,0 +1,108 @@
+{
+  "$schema": "../schema/word-list.schema.json",
+  "kind": "word_list",
+  "formatVersion": 1,
+  "id": "promo_en",
+  "revision": 1,
+  "name": {
+    "zh-CN": "英文促销用语",
+    "en": "English promotional phrases"
+  },
+  "status": "draft",
+  "updatedAt": "2026-11-04",
+  "notes": "跨境平台标题和五点里不允许的促销、比较、保证类说法。未经真实后台核对。",
+  "language": "en",
+  "match": "word",
+  "words": [
+    {
+      "word": "best seller",
+      "severity": "error"
+    },
+    {
+      "word": "bestseller",
+      "severity": "error"
+    },
+    {
+      "word": "best selling",
+      "severity": "error"
+    },
+    {
+      "word": "free shipping",
+      "severity": "error"
+    },
+    {
+      "word": "free gift",
+      "severity": "error"
+    },
+    {
+      "word": "hot sale",
+      "severity": "error"
+    },
+    {
+      "word": "hot item",
+      "severity": "error"
+    },
+    {
+      "word": "on sale",
+      "severity": "error"
+    },
+    {
+      "word": "sale",
+      "severity": "warning"
+    },
+    {
+      "word": "discount",
+      "severity": "warning"
+    },
+    {
+      "word": "clearance",
+      "severity": "warning"
+    },
+    {
+      "word": "limited time",
+      "severity": "error"
+    },
+    {
+      "word": "cheapest",
+      "severity": "error",
+      "suggestion": "affordable"
+    },
+    {
+      "word": "lowest price",
+      "severity": "error",
+      "suggestion": "great value"
+    },
+    {
+      "word": "top rated",
+      "severity": "error"
+    },
+    {
+      "word": "#1",
+      "severity": "error"
+    },
+    {
+      "word": "number one",
+      "severity": "error"
+    },
+    {
+      "word": "100% guaranteed",
+      "severity": "error"
+    },
+    {
+      "word": "money back guarantee",
+      "severity": "error"
+    },
+    {
+      "word": "satisfaction guaranteed",
+      "severity": "error"
+    },
+    {
+      "word": "guarantee",
+      "severity": "warning"
+    },
+    {
+      "word": "new arrival",
+      "severity": "warning"
+    }
+  ]
+}

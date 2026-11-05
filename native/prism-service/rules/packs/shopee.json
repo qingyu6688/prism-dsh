@@ -1,0 +1,39 @@
+{
+  "$schema": "../schema/rule-pack.schema.json",
+  "kind": "rule_pack",
+  "formatVersion": 1,
+  "id": "shopee",
+  "revision": 1,
+  "name": {
+    "zh-CN": "Shopee",
+    "en": "Shopee"
+  },
+  "status": "draft",
+  "updatedAt": "2026-11-04",
+  "notes": "数值根据公开资料整理，未经真实后台核对，使用前请以平台后台为准。标题上限各站点不同（约 100～255 字符），这里按较严的 120。",
+  "market": "cross_border",
+  "sites": ["SG", "MY", "TH", "PH", "VN", "ID", "TW", "BR", "MX"],
+  "defaultLanguage": "en",
+  "images": {
+    "main": {
+      "minCount": 1,
+      "maxCount": 9,
+      "aspectRatios": ["1:1"],
+      "formats": ["jpeg", "png"],
+      "maxBytes": 2097152
+    }
+  },
+  "text": {
+    "title": {
+      "maxLength": 120,
+      "unit": "char"
+    },
+    "description": {
+      "maxLength": 3000,
+      "unit": "char"
+    }
+  },
+  "bannedWords": {
+    "lists": ["promo_en"]
+  }
+}

@@ -11,7 +11,7 @@
 | Node.js | 24.21.0（dsh 要求 ≥ 24.9） |
 | pnpm | 11.28.5，安装在 `D:\AI-Cache\pnpm-cli`（没有启用 corepack，避免写 C 盘） |
 | Git | 2.47.1 |
-| Rust | 1.96.0（棱镜业务服务 `prism-service` 用） |
+| Rust | 1.96.0（棱镜业务服务 `prism-service` 用），`CARGO_HOME=D:/AI-Cache/cargo` |
 | Visual Studio | 2022（Windows 安装包需要的 C++ 组件待打包时确认） |
 
 ## 缓存都放 D 盘
@@ -31,12 +31,24 @@ export TEMP=D:/Claude-Work/tmp TMP=D:/Claude-Work/tmp
 
 ```bash
 pnpm install                 # 安装依赖，约 1 分钟
+(cd native/prism-service && cargo build -p prism-service)   # 构建 Rust 业务服务，桌面端启动时由 Host 插件拉起
 pnpm run build:artifacts     # 构建，约 3 分钟
 pnpm run start:desktop       # 用已有产物启动桌面端
 pnpm run dev:desktop         # 构建后启动桌面端
 ```
 
-桌面端开发数据在 `apps/desktop/.desktop-build/development/`（Harness home、Electron 用户数据），不会写进用户的 `~/.dsh`。调试端口：主进程 9229、界面 9222、Host 9230。
+桌面端开发数据在 `apps/desktop/.desktop-build/development/`（Harness home、Electron 用户数据），不会写进用户的 `~/.dsh`；棱镜的数据库在其中的 `home/prism/`。调试端口：主进程 9229、界面 9222、Host 9230。
+
+Host 插件按 `native/prism-service/target/` 下较新的 release 或 debug 构建启动服务，没构建过时界面照常打开，只是业务功能报"服务不可用"。要用别处的可执行文件，设环境变量 `PRISM_SERVICE_BIN`。
+
+Rust 部分的检查（在 `native/prism-service` 执行）：
+
+```bash
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+cargo fmt --all -- --check
+D:/AI-Cache/cargo/bin/cargo-deny check
+```
 
 ## 锁文件和国内镜像
 

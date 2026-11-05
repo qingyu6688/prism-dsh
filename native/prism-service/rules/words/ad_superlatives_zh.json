@@ -1,0 +1,151 @@
+{
+  "$schema": "../schema/word-list.schema.json",
+  "kind": "word_list",
+  "formatVersion": 1,
+  "id": "ad_superlatives_zh",
+  "revision": 1,
+  "name": {
+    "zh-CN": "广告法极限词",
+    "en": "Chinese advertising superlatives"
+  },
+  "status": "draft",
+  "updatedAt": "2026-11-04",
+  "notes": "按《广告法》第九条整理的常见绝对化用语。error 是基本不能用的说法，warning 要看上下文（如“第一步”里的“第一”没有问题）。未经法务核对。",
+  "language": "zh",
+  "match": "substring",
+  "words": [
+    {
+      "word": "最佳",
+      "severity": "error",
+      "suggestion": "优质"
+    },
+    {
+      "word": "最好",
+      "severity": "error",
+      "suggestion": "很好"
+    },
+    {
+      "word": "最优",
+      "severity": "error",
+      "suggestion": "优选"
+    },
+    {
+      "word": "最高级",
+      "severity": "error",
+      "suggestion": "高品质"
+    },
+    {
+      "word": "最低价",
+      "severity": "error",
+      "suggestion": "实惠价"
+    },
+    {
+      "word": "最便宜",
+      "severity": "error",
+      "suggestion": "实惠"
+    },
+    {
+      "word": "最先进",
+      "severity": "error",
+      "suggestion": "先进"
+    },
+    {
+      "word": "全网第一",
+      "severity": "error"
+    },
+    {
+      "word": "销量第一",
+      "severity": "error",
+      "suggestion": "热销"
+    },
+    {
+      "word": "排名第一",
+      "severity": "error"
+    },
+    {
+      "word": "第一",
+      "severity": "warning",
+      "note": "“第一步”“第一次”等不涉及比较的用法没有问题"
+    },
+    {
+      "word": "唯一",
+      "severity": "warning"
+    },
+    {
+      "word": "首个",
+      "severity": "warning"
+    },
+    {
+      "word": "首选",
+      "severity": "warning",
+      "suggestion": "优选"
+    },
+    {
+      "word": "顶级",
+      "severity": "error",
+      "suggestion": "高端"
+    },
+    {
+      "word": "极品",
+      "severity": "error",
+      "suggestion": "精品"
+    },
+    {
+      "word": "极致",
+      "severity": "warning"
+    },
+    {
+      "word": "国家级",
+      "severity": "error"
+    },
+    {
+      "word": "世界级",
+      "severity": "error"
+    },
+    {
+      "word": "全球级",
+      "severity": "error"
+    },
+    {
+      "word": "绝对",
+      "severity": "warning"
+    },
+    {
+      "word": "百分百",
+      "severity": "warning"
+    },
+    {
+      "word": "万能",
+      "severity": "error"
+    },
+    {
+      "word": "史无前例",
+      "severity": "error"
+    },
+    {
+      "word": "独一无二",
+      "severity": "error",
+      "suggestion": "独特"
+    },
+    {
+      "word": "领导品牌",
+      "severity": "error"
+    },
+    {
+      "word": "国家免检",
+      "severity": "error"
+    },
+    {
+      "word": "永久",
+      "severity": "warning"
+    },
+    {
+      "word": "祖传",
+      "severity": "warning"
+    },
+    {
+      "word": "特效",
+      "severity": "warning"
+    }
+  ]
+}

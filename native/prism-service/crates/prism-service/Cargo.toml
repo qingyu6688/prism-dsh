@@ -1,0 +1,27 @@
+[package]
+name = "prism-service"
+description = "棱镜业务服务：stdin / stdout 上的 JSON-RPC，由 dsh Host 插件拉起"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+clap.workspace = true
+prism-core.workspace = true
+prism-store.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+# 读写 stdin / stdout 需要 io-std、io-util，工作区的 tokio 没开这两个
+tokio = { workspace = true, features = ["io-std", "io-util"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

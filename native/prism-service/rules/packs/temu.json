@@ -1,0 +1,36 @@
+{
+  "$schema": "../schema/rule-pack.schema.json",
+  "kind": "rule_pack",
+  "formatVersion": 1,
+  "id": "temu",
+  "revision": 1,
+  "name": {
+    "zh-CN": "Temu",
+    "en": "Temu"
+  },
+  "status": "draft",
+  "updatedAt": "2026-11-04",
+  "notes": "数值根据公开资料整理，未经真实后台核对，使用前请以平台后台为准。",
+  "market": "cross_border",
+  "sites": ["US", "UK", "DE", "FR", "IT", "ES", "CA", "AU"],
+  "defaultLanguage": "en-US",
+  "images": {
+    "main": {
+      "minCount": 1,
+      "maxCount": 10,
+      "minSide": 800,
+      "aspectRatios": ["1:1", "3:4"],
+      "formats": ["jpeg", "png"],
+      "maxBytes": 3145728
+    }
+  },
+  "text": {
+    "title": {
+      "maxLength": 250,
+      "unit": "char"
+    }
+  },
+  "bannedWords": {
+    "lists": ["promo_en"]
+  }
+}

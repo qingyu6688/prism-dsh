@@ -48,7 +48,8 @@
 
 ### 4.1 进程和通信
 
-- 由 Host 插件 `@prism/host-service` 在 Host 启动时拉起，参数传数据目录；Host 退出时关闭它，崩溃后自动重启（最多连续 3 次）
+- 由 Host 插件 `@prism/dsh-host-service`（`packages/prism/host-service`，提供 `ctx.prismService`）在 Host 启动时拉起，参数传数据目录；插件卸载时关闭服务的 stdin 让它自己退出；意外退出 1 秒后重启，30 秒内退出 3 次就不再重启
+- 服务起不来不影响 dsh 其他功能，只有调用业务方法时报"服务不可用"
 - 通信：stdin / stdout 上按行分帧的 JSON-RPC 2.0；stderr 是日志
 - 图片只传文件路径，不传字节
 - 一个数据目录同时只允许一个服务进程（沿用 0.3.0 的目录锁）
@@ -123,7 +124,7 @@
 | 产品名 | 棱镜 Prism；关于页注明"基于 DeepSeek Harness 构建"（品牌规范允许）。不使用 "DeepSeek Harness" 作名称，不使用鲸鱼标志 |
 | 图标、欢迎页、安装界面 | 换成棱镜的标志（原仓库 `docs/ui-design.md` 第 0 章）；新增 `ui-brand-prism` 替代 `ui-brand-official` |
 | 应用标识 | electron-builder 的 appId、安装目录、开始菜单名、卸载项全部改成棱镜的，不和 dsh 官方桌面端冲突 |
-| 用户数据目录 | Harness home 默认改为棱镜自己的目录（如 `%APPDATA%\Prism`），不用 `~/.dsh`，避免和用户装的 dsh 混用；业务数据默认在其下 `data/`，可在设置里改 |
+| 用户数据目录 | Harness home 默认改为棱镜自己的目录（如 `%APPDATA%\Prism`），不用 `~/.dsh`，避免和用户装的 dsh 混用；业务数据默认在其下 `prism/`（和 dsh 自己的 `profiles/`、`sessions/` 并列），可在设置里改 |
 | 自动更新 | 先关掉（没有自己的更新服务器之前不检查更新，避免连到 dsh 的更新源） |
 | 许可证 | 保留 dsh 的 MIT 许可证和 `THIRD_PARTY_NOTICES.md`；棱镜自己的代码也用 MIT |
 
@@ -165,10 +166,10 @@
 | 步 | 内容 | 验收 | 预计 |
 |---|---|---|---|
 | D1 | 组合与品牌：`prism-desktop` 组合包、关遥测和上报、棱镜预设、界面品牌（`packages/prism/ui-brand`）、不显示 dsh 欢迎窗口、产品名和标语。安装包的产品名和应用 ID、Harness home 默认目录挪到 D5（它们只影响打包后的版本，且牵动 dsh 官方发布流程的大量测试）；未签名构建本身不带更新源，自动更新已是关闭的 | 桌面端以"棱镜"启动，没有终端和 shell，抓包确认不向外上报；能用中转站的 Key 和文本模型对话 | 2 天 |
-| D2 | prism-service 骨架：搬 Rust crate、JSON-RPC 服务、平台包、Host 进程管理插件 | 原有 Rust 测试在新位置全部通过；Host 能拉起服务并 `ping` 通；服务崩溃会重启 | 2 天 |
+| D2 | prism-service 骨架：搬 Rust crate、JSON-RPC 服务、Host 进程管理插件（**2026-11-05 完成**；平台包 `@prism/service-win32-x64` 只和打包有关，挪到 D5） | 原有 Rust 测试在新位置全部通过；Host 能拉起服务并 `ping` 通；服务崩溃会重启 | 2 天 |
 | D3 | 商品与素材：商品库、导入商品、素材库、店铺、规则包页面；商品查询工具；`@` 引用 | 1 万商品滚动流畅；对话里能查商品、引用商品 | 3 天 |
 | D4 | 作图：生图配置卡片、Windows 凭据管理器存储插件 `credentials-wincred`、生图和图裂变工具（后台任务 + 审批）、结果区和结果卡片 | 模拟服务上批量生图、取消、超过阈值先确认；结果区显示图片 | 3 天 |
-| D5 | Windows 安装包：产品名 Prism、快捷方式和卸载显示"棱镜 Prism"、安装包文件名、应用 ID（打包环境变量 `DSH_DESKTOP_APP_ID`）、Harness home 默认改到棱镜目录、关掉或替换 dsh 官方发布流程；未签名安装包、安装 / 卸载 / 覆盖安装验收 | 干净的 Windows 上安装后能用 | 1.5 天 |
+| D5 | Windows 安装包：平台包 `@prism/service-win32-x64` 和 asar 外解压、产品名 Prism、快捷方式和卸载显示"棱镜 Prism"、安装包文件名、应用 ID（打包环境变量 `DSH_DESKTOP_APP_ID`）、Harness home 默认改到棱镜目录、关掉或替换 dsh 官方发布流程；未签名安装包、安装 / 卸载 / 覆盖安装验收 | 干净的 Windows 上安装后能用 | 1.5 天 |
 
 合计约 11.5 个工作日，完成后功能大致回到原 P3 的水平，再接着做 P4（作图模块）。原计划的日期在确认后重排。
 

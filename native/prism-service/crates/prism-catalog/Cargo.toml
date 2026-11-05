@@ -1,0 +1,28 @@
+[package]
+name = "prism-catalog"
+description = "商品库：商品、规格、店铺、素材、文案的校验和管理"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+prism-core.workspace = true
+prism-imaging.workspace = true
+prism-io.workspace = true
+prism-store.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+image.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,35 @@
+{
+  "$schema": "../schema/rule-pack.schema.json",
+  "kind": "rule_pack",
+  "formatVersion": 1,
+  "id": "douyin_shop",
+  "revision": 1,
+  "name": {
+    "zh-CN": "抖店",
+    "en": "Douyin Shop"
+  },
+  "status": "draft",
+  "updatedAt": "2026-11-04",
+  "notes": "数值根据公开资料整理，未经真实后台核对，使用前请以平台后台为准。",
+  "market": "domestic",
+  "defaultLanguage": "zh-CN",
+  "images": {
+    "main": {
+      "minCount": 1,
+      "maxCount": 5,
+      "minSide": 600,
+      "aspectRatios": ["1:1"],
+      "formats": ["jpeg", "png"],
+      "maxBytes": 5242880
+    }
+  },
+  "text": {
+    "title": {
+      "maxLength": 60,
+      "unit": "cjk_double"
+    }
+  },
+  "bannedWords": {
+    "lists": ["ad_superlatives_zh"]
+  }
+}

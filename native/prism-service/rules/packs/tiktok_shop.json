@@ -1,0 +1,36 @@
+{
+  "$schema": "../schema/rule-pack.schema.json",
+  "kind": "rule_pack",
+  "formatVersion": 1,
+  "id": "tiktok_shop",
+  "revision": 1,
+  "name": {
+    "zh-CN": "TikTok Shop",
+    "en": "TikTok Shop"
+  },
+  "status": "draft",
+  "updatedAt": "2026-11-04",
+  "notes": "数值根据公开资料整理，未经真实后台核对，使用前请以平台后台为准。",
+  "market": "cross_border",
+  "sites": ["US", "UK", "ID", "MY", "PH", "TH", "VN", "SG"],
+  "defaultLanguage": "en-US",
+  "images": {
+    "main": {
+      "minCount": 1,
+      "maxCount": 9,
+      "minSide": 600,
+      "aspectRatios": ["1:1"],
+      "formats": ["jpeg", "png", "webp"],
+      "maxBytes": 5242880
+    }
+  },
+  "text": {
+    "title": {
+      "maxLength": 255,
+      "unit": "char"
+    }
+  },
+  "bannedWords": {
+    "lists": ["promo_en"]
+  }
+}
