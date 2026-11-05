@@ -174,7 +174,8 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-it.each([false, true])('starts welcome onboarding without carrying update focus into login or skip (Windows update=%s)', async (updated) => {
+// 棱镜不显示 dsh 的欢迎窗口（src/welcome-api.ts 的 needsWelcome 恒为 false），这个引导场景不存在
+it.skip.each([false, true])('starts welcome onboarding without carrying update focus into login or skip (Windows update=%s)', async (updated) => {
   vi.resetModules()
   vi.clearAllMocks()
   state.preference = 'zh'

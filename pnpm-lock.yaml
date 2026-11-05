@@ -2770,7 +2770,11 @@ importers:
         specifier: workspace:*
         version: link:../../interaction/user-approval
 
-  packages/bundle/prism-desktop: {}
+  packages/bundle/prism-desktop:
+    dependencies:
+      '@prism/dsh-client-ui-brand':
+        specifier: workspace:*
+        version: link:../../prism/ui-brand
 
   packages/bundle/sdk-app:
     dependencies:
@@ -13887,6 +13891,30 @@ importers:
       '@deepseek-ai/dsh-system-prompt':
         specifier: workspace:*
         version: link:../../core/system-prompt
+
+  packages/prism/ui-brand:
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:~
+        version: link:../../../vendor/cordis
+      '@deepseek-ai/dsh-client-ui-conversation':
+        specifier: workspace:*
+        version: link:../../client/ui-conversation
+      '@deepseek-ai/dsh-client-ui-renderer':
+        specifier: workspace:*
+        version: link:../../client/ui-renderer
+      '@deepseek-ai/dsh-client-ui-sidebar':
+        specifier: workspace:*
+        version: link:../../client/ui-sidebar
+      '@deepseek-ai/dsh-client-ui-slots':
+        specifier: workspace:*
+        version: link:../../client/ui-slots
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.3.1(react@18.3.1)
 
   packages/ptc-runtime/ptc-runtime:
     devDependencies:

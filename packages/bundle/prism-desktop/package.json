@@ -29,5 +29,8 @@
         "./presets/prism.patch.yml"
       ]
     }
+  },
+  "dependencies": {
+    "@prism/dsh-client-ui-brand": "workspace:*"
   }
 }

@@ -142,9 +142,15 @@
 | 文件 | 改动 |
 |---|---|
 | `apps/desktop` 的打包配置、图标、安装界面文案、欢迎页 | 品牌 |
+| `apps/desktop/src/welcome-api.ts` | `needsWelcome` 恒为 false：不显示 dsh 的欢迎窗口（只能配 DeepSeek 官方模型或登录账号），模型在"设置 · 模型"里配 |
+| `apps/desktop/src/locale.ts` | 菜单、对话框、托盘里的产品名：中文"棱镜"，其他语言 "Prism" |
+| `packages/client/ui-conversation/src/client/locales.ts` | 首屏标语 `hero.headline` 改为"今天要做什么？"（8 种语言）。语言服务不允许别的插件覆盖同一命名空间，只能改这里 |
+| `packages/client/locale/src/locales/*.ts` | `brand.localBuild` 改为"棱镜" / "Prism"，窗口标题随界面语言 |
+| `apps/web/vite.config.ts` | 脚本加载前的默认窗口标题改为"棱镜 Prism" |
+| 以上改动对应的测试和预期文件 | 产品名、标语、快照随之更新；dsh 欢迎引导的测试标记跳过并注明原因 |
 | `apps/desktop/src/project-manager.ts` | 桌面端组合列表改为 dsh Web 组合 + `@prism/dsh-bundle-desktop`（已改，4 处引用加 1 个常量） |
 | `apps/cli/package.json` | 依赖里加 `@prism/dsh-bundle-desktop`，让开发和打包都能解析到组合包（已改，1 行） |
-| `tsconfig.base.json`、`tsconfig.host.json` | 登记棱镜的包（路径别名、项目引用）；以后每个棱镜包各加一行（已改） |
+| `tsconfig.base.json`、`tsconfig.host.json`、`tsconfig.client.json` | 登记棱镜的包（路径别名、项目引用）；以后每个棱镜包各加一行（已改） |
 | `pnpm-lock.yaml` | 随新增的包变化；注意去掉镜像源写入的下载地址（见 `environment.md`） |
 | `apps/desktop` 的 Harness home 默认值 | 指向棱镜目录 |
 | `apps/desktop` 的打包文件策略 | 让 `@prism/service-*` 平台包解压到 asar 外 |
@@ -158,11 +164,11 @@
 
 | 步 | 内容 | 验收 | 预计 |
 |---|---|---|---|
-| D1 | 组合与品牌：`prism-desktop` 组合包、去掉开发者功能和遥测、棱镜品牌、Harness home 改目录、关自动更新 | 桌面端以"棱镜"启动，没有终端和 shell，抓包确认不向外上报；能用中转站的 Key 和文本模型对话 | 2 天 |
+| D1 | 组合与品牌：`prism-desktop` 组合包、关遥测和上报、棱镜预设、界面品牌（`packages/prism/ui-brand`）、不显示 dsh 欢迎窗口、产品名和标语。安装包的产品名和应用 ID、Harness home 默认目录挪到 D5（它们只影响打包后的版本，且牵动 dsh 官方发布流程的大量测试）；未签名构建本身不带更新源，自动更新已是关闭的 | 桌面端以"棱镜"启动，没有终端和 shell，抓包确认不向外上报；能用中转站的 Key 和文本模型对话 | 2 天 |
 | D2 | prism-service 骨架：搬 Rust crate、JSON-RPC 服务、平台包、Host 进程管理插件 | 原有 Rust 测试在新位置全部通过；Host 能拉起服务并 `ping` 通；服务崩溃会重启 | 2 天 |
 | D3 | 商品与素材：商品库、导入商品、素材库、店铺、规则包页面；商品查询工具；`@` 引用 | 1 万商品滚动流畅；对话里能查商品、引用商品 | 3 天 |
 | D4 | 作图：生图配置卡片、Windows 凭据管理器存储插件 `credentials-wincred`、生图和图裂变工具（后台任务 + 审批）、结果区和结果卡片 | 模拟服务上批量生图、取消、超过阈值先确认；结果区显示图片 | 3 天 |
-| D5 | Windows 安装包：未签名安装包、安装 / 卸载 / 覆盖安装验收 | 干净的 Windows 上安装后能用 | 1.5 天 |
+| D5 | Windows 安装包：产品名 Prism、快捷方式和卸载显示"棱镜 Prism"、安装包文件名、应用 ID（打包环境变量 `DSH_DESKTOP_APP_ID`）、Harness home 默认改到棱镜目录、关掉或替换 dsh 官方发布流程；未签名安装包、安装 / 卸载 / 覆盖安装验收 | 干净的 Windows 上安装后能用 | 1.5 天 |
 
 合计约 11.5 个工作日，完成后功能大致回到原 P3 的水平，再接着做 P4（作图模块）。原计划的日期在确认后重排。
 

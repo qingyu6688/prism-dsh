@@ -21,8 +21,9 @@ it('retains one shared resource consumer in the Desktop Web profile', () => {
       profile.patches,
     ], message => warnings.push(message))
 
+    // 棱镜组合包暂时关掉 MCP（packages/bundle/prism-desktop/cordis.patch.yml）
     expect(rows.filter(row => row.name === '@deepseek-ai/dsh-mcp-resources')).toEqual([
-      { id: 'mcp-resources', name: '@deepseek-ai/dsh-mcp-resources' },
+      { id: 'mcp-resources', name: '@deepseek-ai/dsh-mcp-resources', disabled: true },
     ])
     expect(rows.filter(row => row.name === '@deepseek-ai/dsh-mcp-client')).toEqual([])
     expect(rows.find(row => row.id === 'webserver')).toMatchObject({ name: '@deepseek-ai/dsh-host-webserver' })

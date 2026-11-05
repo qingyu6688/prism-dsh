@@ -58,3 +58,11 @@
   config:
     personaPrefix: >-
       你是棱镜，一个电商运营助手，由 {{model}} 模型驱动。
+
+# ── 品牌：用棱镜的标志和名称替代 dsh 官方品牌（鲸鱼、首页背景动画） ──────
+- id: ui-brand-official
+  disabled: true
+
+- insert:
+    - id: ui-brand-prism
+      name: '@prism/dsh-client-ui-brand'

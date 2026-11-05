@@ -67,9 +67,12 @@ export interface WelcomeAuthentication {
 
 /**
  * Decide whether a startup or sign-out requires the welcome entry.
- * @param authentication - current account and independently stored API-key facts.
- * @returns true only when neither authentication route is configured.
+ *
+ * 棱镜：不显示 dsh 的欢迎窗口。它只能配置 DeepSeek 官方模型或登录 DeepSeek 账号，
+ * 棱镜用户在"设置 · 模型"里配置 OpenAI、中转站等任意提供方（docs/prism/design.md 第 7 节）。
+ * @param _authentication - current account and independently stored API-key facts (unused in Prism).
+ * @returns always false.
  */
-export function needsWelcome(authentication: WelcomeAuthentication): boolean {
-  return !authentication.loggedIn && !authentication.hasApiKey
+export function needsWelcome(_authentication: WelcomeAuthentication): boolean {
+  return false
 }
