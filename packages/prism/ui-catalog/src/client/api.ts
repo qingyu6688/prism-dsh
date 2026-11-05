@@ -5,7 +5,9 @@
  */
 
 import type {
-  IdRequest, Product, ProductDetail, ProductFilter, ProductInput, ProductPage, Shop, ShopInput,
+  Asset, AssetFilter, AssetPage, IdRequest, ImportAssetFilesRequest, ImportAssetFilesResult, ImportPreview,
+  ImportPreviewRequest, ImportProductsRequest, ImportResult, Product, ProductDetail, ProductFilter, ProductInput,
+  ProductPage, SavedMapping, Shop, ShopInput, TagCount, UploadedFile,
 } from '@prism/dsh-host-catalog/types'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 
@@ -35,6 +37,17 @@ export interface PrismRemote {
   createShop(request: { readonly input: ShopInput }): Promise<RemoteResult<Shop>>
   updateShop(request: { readonly id: string; readonly input: ShopInput }): Promise<RemoteResult<Shop>>
   deleteShop(request: IdRequest): Promise<RemoteResult<void>>
+  previewProductImport(request: ImportPreviewRequest): Promise<RemoteResult<ImportPreview>>
+  importProducts(request: ImportProductsRequest): Promise<RemoteResult<ImportResult>>
+  listImportMappings(): Promise<RemoteResult<readonly SavedMapping[]>>
+  deleteImportMapping(request: IdRequest): Promise<RemoteResult<void>>
+  listAssets(request: { readonly filter: AssetFilter }): Promise<RemoteResult<AssetPage>>
+  listAssetTags(): Promise<RemoteResult<readonly TagCount[]>>
+  importAssetFiles(request: ImportAssetFilesRequest): Promise<RemoteResult<ImportAssetFilesResult>>
+  setAssetTags(request: { readonly id: string; readonly tags: readonly string[] }): Promise<RemoteResult<Asset>>
+  starAsset(request: { readonly id: string; readonly starred: boolean }): Promise<RemoteResult<void>>
+  linkAsset(request: { readonly id: string; readonly productId: string | null }): Promise<RemoteResult<void>>
+  deleteAsset(request: IdRequest): Promise<RemoteResult<void>>
 }
 
 /** 组件用的接口：成功返回值，失败抛 {@link CatalogRequestError}。 */
@@ -50,6 +63,63 @@ export interface CatalogApi {
   createShop(input: ShopInput): Promise<Shop>
   updateShop(id: string, input: ShopInput): Promise<Shop>
   deleteShop(id: string): Promise<void>
+  /** 把浏览器里选的文件传到 Host，返回 Host 上的路径（导入前先上传）。 */
+  upload(file: File, signal?: AbortSignal): Promise<UploadedFile>
+  previewProductImport(request: ImportPreviewRequest): Promise<ImportPreview>
+  importProducts(request: ImportProductsRequest): Promise<ImportResult>
+  listImportMappings(): Promise<readonly SavedMapping[]>
+  deleteImportMapping(id: string): Promise<void>
+  listAssets(filter: AssetFilter): Promise<AssetPage>
+  listAssetTags(): Promise<readonly TagCount[]>
+  importAssetFiles(request: ImportAssetFilesRequest): Promise<ImportAssetFilesResult>
+  setAssetTags(id: string, tags: readonly string[]): Promise<Asset>
+  starAsset(id: string, starred: boolean): Promise<void>
+  linkAsset(id: string, productId: string | null): Promise<void>
+  deleteAsset(id: string): Promise<void>
+}
+
+/** 上传路由，和 `@prism/dsh-host-catalog` 的 `UPLOAD_PATH` 一致（那个包是 Host 端，浏览器里不能引它的值）。 */
+export const UPLOAD_PATH = '/api/prism/upload'
+/** 读数据目录图片的路由，和 `@prism/dsh-host-catalog` 的 `FILE_PATH` 一致。 */
+export const FILE_PATH = '/api/prism/file'
+
+/**
+ * 数据目录里一个文件的地址，给 `<img src>` 用。
+ * @param relativePath - 素材的 `filePath` 或 `thumbPath`。
+ * @returns 地址。
+ */
+export function fileUrl(relativePath: string): string {
+  return `${FILE_PATH}?path=${encodeURIComponent(relativePath)}`
+}
+
+/**
+ * 上传一个文件到 Host。失败时用路由返回的中文说明。
+ * @param fetchImpl - 发请求的函数（测试时替换）。
+ * @param file - 浏览器里选的文件。
+ * @param unreachable - 连不上 Host 时的说明。
+ * @param signal - 取消上传。
+ * @returns Host 上的路径、文件名、大小。
+ */
+async function uploadFile(fetchImpl: typeof fetch, file: File, unreachable: string, signal?: AbortSignal): Promise<UploadedFile> {
+  let response: Response
+  try {
+    response = await fetchImpl(`${UPLOAD_PATH}?name=${encodeURIComponent(file.name)}`, {
+      method: 'POST',
+      body: file,
+      credentials: 'same-origin',
+      ...signal === undefined ? {} : { signal },
+    })
+  } catch (error) {
+    if (signal?.aborted === true) throw error
+    throw new CatalogRequestError(unreachable, 'unreachable')
+  }
+  const body: unknown = await response.json().catch(() => null)
+  if (response.ok) return body as UploadedFile
+  const failure = (body ?? {}) as { code?: unknown; message?: unknown }
+  throw new CatalogRequestError(
+    typeof failure.message === 'string' ? failure.message : `${unreachable}（HTTP ${response.status}）`,
+    typeof failure.code === 'string' ? failure.code : `http_${response.status}`,
+  )
 }
 
 /**
@@ -74,7 +144,11 @@ export async function unwrap<T>(pending: Promise<RemoteResult<T>>, unreachable: 
  * @param unreachable - 连不上 Host 时的说明（已按界面语言翻译）。
  * @returns 组件用的接口。
  */
-export function createCatalogApi(remote: PrismRemote, unreachable: string): CatalogApi {
+export function createCatalogApi(
+  remote: PrismRemote,
+  unreachable: string,
+  fetchImpl: typeof fetch = (input, init) => globalThis.fetch(input, init),
+): CatalogApi {
   const run = <T>(pending: Promise<RemoteResult<T>>): Promise<T> => unwrap(pending, unreachable)
   return {
     listProducts: filter => run(remote.listProducts({ filter })),
@@ -88,6 +162,18 @@ export function createCatalogApi(remote: PrismRemote, unreachable: string): Cata
     createShop: input => run(remote.createShop({ input })),
     updateShop: (id, input) => run(remote.updateShop({ id, input })),
     deleteShop: id => run(remote.deleteShop({ id })),
+    upload: (file, signal) => uploadFile(fetchImpl, file, unreachable, signal),
+    previewProductImport: request => run(remote.previewProductImport(request)),
+    importProducts: request => run(remote.importProducts(request)),
+    listImportMappings: () => run(remote.listImportMappings()),
+    deleteImportMapping: id => run(remote.deleteImportMapping({ id })),
+    listAssets: filter => run(remote.listAssets({ filter })),
+    listAssetTags: () => run(remote.listAssetTags()),
+    importAssetFiles: request => run(remote.importAssetFiles(request)),
+    setAssetTags: (id, tags) => run(remote.setAssetTags({ id, tags })),
+    starAsset: (id, starred) => run(remote.starAsset({ id, starred })),
+    linkAsset: (id, productId) => run(remote.linkAsset({ id, productId })),
+    deleteAsset: id => run(remote.deleteAsset({ id })),
   }
 }
 

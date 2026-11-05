@@ -1,10 +1,11 @@
 /** 设置里的"店铺"：列出店铺，添加、编辑、删除。 */
 import clsx from 'clsx'
 import { useCallback, useEffect, useState } from 'react'
-import { Button, IconChevronDownOutlineRegular, IconEditOutlineRegular, IconPlusOutlineRegular, IconTrashOutlineRegular, Input, Menu, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, IconEditOutlineRegular, IconPlusOutlineRegular, IconTrashOutlineRegular, Input, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { Shop, ShopInput } from '@prism/dsh-host-catalog/types'
 import { messageOf, type CatalogApi } from './api.ts'
 import { PLATFORMS, type CatalogKey } from './locales.ts'
+import { Picker } from './Picker.tsx'
 import { Field, type Translate } from './ProductForm.tsx'
 import css from './Catalog.module.css'
 
@@ -151,7 +152,6 @@ function ShopForm({ open, shop, api, t, onClose, onSaved }: {
   const [missing, setMissing] = useState<{ name?: boolean; platform?: boolean }>({})
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [pickerOpen, setPickerOpen] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -205,23 +205,14 @@ function ShopForm({ open, shop, api, t, onClose, onSaved }: {
           <Input id="shop-name" value={draft.name} data-modal-autofocus onChange={(e) => { set('name', e.target.value) }} />
         </Field>
         <Field id="shop-platform" label={t('shops.platform')} required problem={missing.platform === true ? t('form.required') : undefined}>
-          <Menu
-            open={pickerOpen}
-            onClose={() => { setPickerOpen(false) }}
-            portal
-            minWidthFromAnchor
-            selectedId={draft.platform === '' ? undefined : draft.platform}
-            items={PLATFORMS.map(id => ({ id, label: platformLabel(id, t) }))}
-            onSelect={(id: string) => { set('platform', id); setPickerOpen(false) }}
-            anchor={
-              <button type="button" id="shop-platform" className={css.picker} aria-haspopup="listbox" aria-expanded={pickerOpen}
-                onClick={() => { setPickerOpen(value => !value) }}>
-                <span className={draft.platform === '' ? css.pickerPlaceholder : undefined}>
-                  {draft.platform === '' ? t('shops.platformPick') : platformLabel(draft.platform, t)}
-                </span>
-                <IconChevronDownOutlineRegular size={14} />
-              </button>
-            }
+          <Picker
+            id="shop-platform"
+            value={draft.platform === '' ? undefined : draft.platform}
+            placeholder={t('shops.platformPick')}
+            // 编辑以前存的、不在列表里的平台时，把它也放进选项，不然按钮上看不到当前值
+            options={[...PLATFORMS, ...(draft.platform === '' || (PLATFORMS as readonly string[]).includes(draft.platform) ? [] : [draft.platform])]
+              .map(id => ({ id, label: platformLabel(id, t) }))}
+            onChange={(id) => { set('platform', id) }}
           />
         </Field>
         <div className={css.formRow}>

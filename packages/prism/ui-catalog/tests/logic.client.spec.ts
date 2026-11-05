@@ -2,7 +2,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
 import type { Product, ProductFilter, ProductPage } from '@prism/dsh-host-catalog/types'
-import { CatalogRequestError, unwrap } from '../src/client/api.ts'
+import { CatalogRequestError, createCatalogApi, fileUrl, unwrap } from '../src/client/api.ts'
+import { parseTags } from '../src/client/AssetPanel.tsx'
 import { EMPTY_DRAFT, draftOf, formatDate, formatMoney, inputOf, parseAttributes, parseCost } from '../src/client/format.ts'
 import { PAGE_SIZE, ProductRows } from '../src/client/product-rows.ts'
 
@@ -159,5 +160,37 @@ describe('unwrap', () => {
       ok: false as const, error: new RemoteError('gateway/internal', 'socket hang up', {}),
     }), '连不上棱镜业务服务').catch((e: unknown) => e)
     expect(transport).toMatchObject({ message: '连不上棱镜业务服务（gateway/internal）', code: 'gateway/internal' })
+  })
+})
+
+describe('上传和文件地址', () => {
+  const remote = {} as Parameters<typeof createCatalogApi>[0]
+  const file = new File(['货号\n'], '商品 表.csv')
+
+  it('上传：文件名进查询参数，成功返回 Host 上的路径', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(() => Promise.resolve(Response.json({ path: 'D:/data/inbox/1/商品 表.csv', name: '商品 表.csv', size: 6 })))
+    const api = createCatalogApi(remote, '连不上', fetchImpl)
+    await expect(api.upload(file)).resolves.toMatchObject({ path: 'D:/data/inbox/1/商品 表.csv' })
+    const [url, init] = fetchImpl.mock.calls[0]!
+    expect(url).toBe('/api/prism/upload?name=%E5%95%86%E5%93%81%20%E8%A1%A8.csv')
+    expect(init).toMatchObject({ method: 'POST', body: file, credentials: 'same-origin' })
+  })
+
+  it('上传失败用路由给的中文说明；连不上时用通用说明', async () => {
+    const rejected = createCatalogApi(remote, '连不上', () => Promise.resolve(Response.json({ code: 'too_large', message: '文件超过 50 MB' }, { status: 413 })))
+    await expect(rejected.upload(file)).rejects.toMatchObject({ message: '文件超过 50 MB', code: 'too_large' })
+    const broken = createCatalogApi(remote, '连不上', () => Promise.resolve(new Response('oops', { status: 502 })))
+    await expect(broken.upload(file)).rejects.toMatchObject({ message: '连不上（HTTP 502）', code: 'http_502' })
+    const offline = createCatalogApi(remote, '连不上', () => Promise.reject(new TypeError('Failed to fetch')))
+    await expect(offline.upload(file)).rejects.toMatchObject({ message: '连不上', code: 'unreachable' })
+  })
+
+  it('图片地址把相对路径编码进查询参数', () => {
+    expect(fileUrl('thumbs/ab/c d.webp')).toBe('/api/prism/file?path=thumbs%2Fab%2Fc%20d.webp')
+  })
+
+  it('标签按中英文逗号、顿号拆开，去空白和重复', () => {
+    expect(parseTags('主图, 红色，白底、主图, ')).toEqual(['主图', '红色', '白底'])
+    expect(parseTags('  ')).toEqual([])
   })
 })

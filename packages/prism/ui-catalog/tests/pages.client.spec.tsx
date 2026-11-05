@@ -4,14 +4,15 @@
  * 新建和编辑表单、归档恢复、删除确认，以及服务端报错的显示。
  */
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
-import type { Product, ProductDetail, ProductInput, Shop, ShopInput } from '@prism/dsh-host-catalog/types'
-import { CatalogRequestError, type CatalogApi } from '../src/client/api.ts'
+import type { Shop } from '@prism/dsh-host-catalog/types'
+import { CatalogRequestError } from '../src/client/api.ts'
 import { zh } from '../src/client/locales.ts'
 import type { Translate } from '../src/client/ProductForm.tsx'
 import { ProductsPage } from '../src/client/ProductsPage.tsx'
 import { ShopsSection } from '../src/client/ShopsSection.tsx'
+import { fakeApi, product } from './fake-api.ts'
 
 const t = makeTranslate(zh) as Translate
 
@@ -28,94 +29,6 @@ afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
 })
-
-/** 每个方法都是带类型的 mock，测试里可以检查调用、临时改返回值。 */
-type FakeApi = { [K in keyof CatalogApi]: Mock<CatalogApi[K]> } & { products: Product[]; shops: Shop[] }
-
-/** 内存里的商品库和店铺，行为和服务端一致的部分：货号唯一、归档、按关键词筛选。 */
-function fakeApi(initial: Product[] = [], shops: Shop[] = []): FakeApi {
-  let next = 100
-  const state = { products: [...initial], shops: [...shops] }
-  const toProduct = (id: string, input: ProductInput, archived = false): Product => ({
-    id, name: input.name, code: input.code ?? null, category: input.category ?? null, brand: input.brand ?? null,
-    description: input.description ?? null, sellingPoints: [...(input.sellingPoints ?? [])], attributes: [...(input.attributes ?? [])],
-    costCents: input.costCents ?? null, currency: input.currency ?? 'CNY', targetMarkets: [...(input.targetMarkets ?? [])],
-    archived, createdAt: 0, updatedAt: 0,
-  })
-  const find = (id: string): Product => {
-    const product = state.products.find(p => p.id === id)
-    if (product === undefined) throw new CatalogRequestError('商品不存在', 'not_found')
-    return product
-  }
-  const checkCode = (input: ProductInput, id?: string): void => {
-    if (input.code != null && state.products.some(p => p.code === input.code && p.id !== id)) {
-      throw new CatalogRequestError(`商品的编码「${input.code}」已经存在`, 'invalid_input')
-    }
-  }
-  const toShop = (id: string, input: ShopInput): Shop => ({
-    id, name: input.name, platform: input.platform, site: input.site ?? null, language: input.language ?? 'zh-CN',
-    currency: input.currency ?? 'CNY', notes: input.notes ?? null, sortOrder: 0, createdAt: 0, updatedAt: 0,
-  })
-  return Object.assign(state, {
-    listProducts: vi.fn<CatalogApi['listProducts']>((filter) => {
-      const keyword = filter.keyword ?? ''
-      const items = state.products.filter(p => p.archived === (filter.archived ?? false) && p.name.includes(keyword))
-      const offset = filter.offset ?? 0
-      return Promise.resolve({ items: items.slice(offset, offset + (filter.limit ?? 50)), total: items.length })
-    }),
-    productDetail: vi.fn<CatalogApi['productDetail']>((id: string): Promise<ProductDetail> => Promise.resolve({
-      product: find(id), skus: [],
-      summary: { skuCount: 0, imageAssets: 2, textAssets: 0, starredAssets: 0, copies: [], batches: [], lastBatchAt: null },
-    })),
-    createProduct: vi.fn<CatalogApi['createProduct']>((input: ProductInput) => {
-      checkCode(input)
-      const product = toProduct(`p${next++}`, input)
-      state.products.unshift(product)
-      return Promise.resolve(product)
-    }),
-    updateProduct: vi.fn<CatalogApi['updateProduct']>((id: string, input: ProductInput) => {
-      checkCode(input, id)
-      const updated = toProduct(id, input, find(id).archived)
-      state.products = state.products.map(p => p.id === id ? updated : p)
-      return Promise.resolve(updated)
-    }),
-    archiveProduct: vi.fn<CatalogApi['archiveProduct']>((id: string) => {
-      state.products = state.products.map(p => p.id === id ? { ...p, archived: true } : p)
-      return Promise.resolve()
-    }),
-    restoreProduct: vi.fn<CatalogApi['restoreProduct']>((id: string) => {
-      state.products = state.products.map(p => p.id === id ? { ...p, archived: false } : p)
-      return Promise.resolve()
-    }),
-    deleteProduct: vi.fn<CatalogApi['deleteProduct']>((id: string) => {
-      state.products = state.products.filter(p => p.id !== id)
-      return Promise.resolve()
-    }),
-    listShops: vi.fn<CatalogApi['listShops']>(() => Promise.resolve([...state.shops])),
-    createShop: vi.fn<CatalogApi['createShop']>((input: ShopInput) => {
-      const shop = toShop(`s${next++}`, input)
-      state.shops.push(shop)
-      return Promise.resolve(shop)
-    }),
-    updateShop: vi.fn<CatalogApi['updateShop']>((id: string, input: ShopInput) => {
-      const shop = toShop(id, input)
-      state.shops = state.shops.map(s => s.id === id ? shop : s)
-      return Promise.resolve(shop)
-    }),
-    deleteShop: vi.fn<CatalogApi['deleteShop']>((id: string) => {
-      state.shops = state.shops.filter(s => s.id !== id)
-      return Promise.resolve()
-    }),
-  })
-}
-
-function product(n: number, overrides: Partial<Product> = {}): Product {
-  return {
-    id: `p${n}`, code: `C-${n}`, name: `商品 ${n}`, category: '上衣', brand: null, description: null,
-    sellingPoints: [], attributes: [], costCents: 1000 + n, currency: 'CNY', targetMarkets: [], archived: false,
-    createdAt: 0, updatedAt: 0, ...overrides,
-  }
-}
 
 /** 按标签找输入框；必填项的标签文字后面带一个星号。 */
 function field(label: string): HTMLInputElement {

@@ -19,6 +19,22 @@ export function ProductsIcon({ size }: PropsRuntime<'sidebar.panellist'>) {
 }
 
 /**
+ * 左侧导航"素材库"的图标：一张图片。
+ * @param props - 侧栏给的尺寸。
+ * @returns 装饰性图标。
+ */
+export function AssetsIcon({ size }: PropsRuntime<'sidebar.panellist'>) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+      <circle cx="9" cy="10" r="1.75" />
+      <path d="m20.5 16-4.5-4.5-8.5 8" />
+    </svg>
+  )
+}
+
+/**
  * 设置里"店铺"的图标：一个店面。
  * @param props - 设置页给的尺寸。
  * @returns 装饰性图标。

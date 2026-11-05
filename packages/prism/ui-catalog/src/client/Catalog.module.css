@@ -38,6 +38,13 @@
   padding-top: calc(28px + var(--dsh-frame-top-clearance, 0px));
 }
 
+.headActions,
+.emptyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .titleLine {
   display: flex;
   align-items: baseline;
@@ -423,6 +430,12 @@
   color: var(--dsw-alias-state-error-primary);
 }
 
+.pickerRoot {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+
 .picker {
   display: flex;
   align-items: center;
@@ -443,6 +456,13 @@
 
 .picker[aria-expanded='true'] {
   border-color: var(--dsw-alias-label-primary);
+}
+
+.pickerPlaceholder,
+.pickerValue {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .pickerPlaceholder {
@@ -486,4 +506,321 @@
   width: 1%;
   white-space: nowrap;
   text-align: end;
+}
+
+/* ---------- 导入商品 ---------- */
+
+.wideModal {
+  width: min(720px, calc(100vw - 48px));
+}
+
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 24px;
+  border: 1px dashed var(--dsw-alias-border-l2);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.inlineControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.inlineControls > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.inlineControls > .lineInput {
+  flex: 0 0 96px;
+}
+
+.successNote {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--dsw-alias-state-success-primary);
+  background: var(--dsw-alias-state-success-tertiary);
+}
+
+.mappingTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed;
+}
+
+.mappingTable th,
+.mappingTable td {
+  padding: 6px 8px;
+  text-align: start;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+
+.mappingTable th {
+  font-weight: 500;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.mappingTable th:first-child {
+  width: 28%;
+}
+
+.sampleCell {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.saveMapping {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resultLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0;
+}
+
+.problemList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 240px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  font-size: 13px;
+}
+
+.problemList li {
+  display: flex;
+  gap: 8px;
+}
+
+.problemLine {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--dsw-alias-label-secondary);
+}
+
+/* ---------- 素材库 ---------- */
+
+.tagFilter {
+  width: 200px;
+}
+
+.importNotice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: var(--dsw-alias-state-success-tertiary);
+}
+
+.importNoticeWarn {
+  background: var(--dsw-alias-state-warn-tertiary);
+}
+
+.noticeParts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.assetScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.assetGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assetCard {
+  position: relative;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--dsw-alias-bg-base);
+}
+
+.selectedCard {
+  outline: 2px solid var(--dsw-alias-label-primary);
+  outline-offset: -1px;
+}
+
+.assetOpen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  text-align: start;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.assetOpen:focus-visible {
+  outline: 2px solid var(--dsw-alias-state-business-primary);
+  outline-offset: -2px;
+}
+
+.assetThumb,
+.assetTextThumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+.assetThumb {
+  object-fit: contain;
+}
+
+.assetTextThumb {
+  box-sizing: border-box;
+  padding: 12px;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.assetCaption {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  line-height: 1.35;
+}
+
+.assetTitle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.cardStar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--dsw-alias-bg-base);
+}
+
+.starButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  min-width: 28px;
+  justify-content: center;
+  padding: 0 6px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--dsw-alias-label-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.starButton:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.starred {
+  color: var(--dsw-alias-state-warn-primary);
+}
+
+.loadMore {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.assetPreview {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--dsw-alias-bg-base);
+}
+
+.assetText {
+  margin: 0;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  background: var(--dsw-alias-bg-base);
+}
+
+.linkedProduct {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.alignStart {
+  align-self: flex-start;
+}
+
+.productSearch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.productResults {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.productResult {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.productResult:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
 }

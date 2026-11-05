@@ -6,6 +6,7 @@ import { Button, IconPlusOutlineRegular, IconSearchOutlineRegular, Input, Segmen
 import type { Product } from '@prism/dsh-host-catalog/types'
 import type { CatalogApi } from './api.ts'
 import { formatDate, formatMoney } from './format.ts'
+import { ImportDialog } from './ImportDialog.tsx'
 import { ProductDrawer } from './ProductDrawer.tsx'
 import { ProductForm, type Translate } from './ProductForm.tsx'
 import { ProductRows } from './product-rows.ts'
@@ -38,6 +39,7 @@ export function ProductsPage({ api, t }: ProductsPageProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [revision, setRevision] = useState(0)
   const [form, setForm] = useState<{ open: boolean; product?: Product | undefined }>({ open: false })
+  const [importing, setImporting] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => { setKeyword(search) }, SEARCH_DELAY_MS)
@@ -87,8 +89,11 @@ export function ProductsPage({ api, t }: ProductsPageProps) {
         <div className={css.emptyBox}>
           <p className={css.emptyTitle}>{t('products.emptyTitle')}</p>
           <p className={css.muted}>{t('products.emptyBody')}</p>
-          <Button variant="primary" size="sm" icon={<IconPlusOutlineRegular size={14} />}
-            onClick={() => { setForm({ open: true }) }}>{t('products.new')}</Button>
+          <div className={css.emptyActions}>
+            <Button variant="primary" size="sm" icon={<IconPlusOutlineRegular size={14} />}
+              onClick={() => { setForm({ open: true }) }}>{t('products.new')}</Button>
+            <Button variant="outline" size="sm" onClick={() => { setImporting(true) }}>{t('products.import')}</Button>
+          </div>
         </div>
       )
     }
@@ -141,8 +146,11 @@ export function ProductsPage({ api, t }: ProductsPageProps) {
             <h1 className={css.pageTitle}>{t('products.title')}</h1>
             {snapshot.status === 'ready' ? <span className={css.muted}>{t('products.count', { count: snapshot.total })}</span> : null}
           </div>
-          <Button variant="primary" size="sm" icon={<IconPlusOutlineRegular size={14} />}
-            onClick={() => { setForm({ open: true }) }}>{t('products.new')}</Button>
+          <div className={css.headActions}>
+            <Button variant="outline" size="sm" onClick={() => { setImporting(true) }}>{t('products.import')}</Button>
+            <Button variant="primary" size="sm" icon={<IconPlusOutlineRegular size={14} />}
+              onClick={() => { setForm({ open: true }) }}>{t('products.new')}</Button>
+          </div>
         </header>
         <div className={css.toolbar}>
           <Input className={clsx(css.search)} icon={<IconSearchOutlineRegular size={16} />} value={search}
@@ -166,6 +174,11 @@ export function ProductsPage({ api, t }: ProductsPageProps) {
           setForm({ open: false })
           setSelectedId(product.id)
           changed()
+        }} />
+      <ImportDialog open={importing} api={api} t={t}
+        onClose={(imported) => {
+          setImporting(false)
+          if (imported) changed()
         }} />
     </div>
   )

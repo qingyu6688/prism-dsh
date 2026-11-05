@@ -17,7 +17,8 @@ import type { TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import remote from '@prism/dsh-host-catalog/remote'
 import { createCatalogApi, type CatalogApi } from './api.ts'
 import { en, zh, type CatalogKey } from './locales.ts'
-import { ProductsIcon, ShopIcon } from './ProductsIcon.tsx'
+import { AssetsPage } from './AssetsPage.tsx'
+import { AssetsIcon, ProductsIcon, ShopIcon } from './ProductsIcon.tsx'
 import { ProductsPage } from './ProductsPage.tsx'
 import { ShopsSection } from './ShopsSection.tsx'
 
@@ -29,6 +30,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const NS = 'prism.catalog'
 /** 商品库页面在主区域的 id，也是左侧导航条目的 id。 */
 export const PRODUCTS_PANEL = 'prism-products' as MainPanelId
+/** 素材库页面在主区域的 id，也是左侧导航条目的 id。 */
+export const ASSETS_PANEL = 'prism-assets' as MainPanelId
 
 /** 挂 Remote 之前就要有的服务。 */
 export const inject = ['slots', 'locale', 'remote']
@@ -42,6 +45,10 @@ type SectionProps = PropsRuntime<'settings.section'> & PropsLocale<'prism.catalo
 
 function ProductsMain({ api, t }: MainProps) {
   return createElement(ProductsPage, { api, t })
+}
+
+function AssetsMain({ api, t }: MainProps) {
+  return createElement(AssetsPage, { api, t })
 }
 
 function ShopsMain({ api, t }: SectionProps) {
@@ -83,6 +90,12 @@ export function registerUi(ctx: Context): void {
   ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
     name: 'sidebar.panellist', id: PRODUCTS_PANEL, order: 5, locale: NS, label: () => t('nav'),
   }, ProductsIcon))
+  ctx.slots.inject('main', () => ctx.slots.register({
+    name: 'main', key: ASSETS_PANEL, locale: NS, inject: injected,
+  }, AssetsMain))
+  ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
+    name: 'sidebar.panellist', id: ASSETS_PANEL, order: 6, locale: NS, label: () => t('assets.nav'),
+  }, AssetsIcon))
   ctx.slots.inject('settings.section', () => ctx.slots.register({
     name: 'settings.section', id: 'prism-shops', order: 30, locale: NS, label: () => t('shops.nav'), inject: injected,
   }, ShopsMain))
