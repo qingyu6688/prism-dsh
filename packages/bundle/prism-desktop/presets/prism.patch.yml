@@ -127,6 +127,9 @@
               searchTimeoutMs: 60000
           - id: present
             name: '@deepseek-ai/dsh-tool-present'
+          # 棱镜：商品库查询（docs/prism/design.md 第 12 节）
+          - id: prism-tool-catalog
+            name: '@prism/dsh-tool-catalog'
           - id: tool-plugin-manager
             name: '@deepseek-ai/dsh-plugin-manager/tools'
             disabled: !!js "!ctx.get('profileContext')"

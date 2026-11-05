@@ -182,3 +182,46 @@
 | 安装包体积变大（Electron + 内置 Python / Node） | 内置 Python 是否需要在 D1 评估（棱镜目前用不到 Office 技能）；能去掉就去掉 |
 | 界面要按 dsh 的插件方式重写（React 18、dsh 的 slot 体系） | 交互和视觉沿用原 `ui-design.md`，组件改用 dsh 的 `ui-primitives` |
 | 插件依赖关系复杂，去掉某个插件导致启动失败 | D1 逐个去掉、逐个启动验证 |
+
+## 12. D3 商品与素材的做法（2026-11-05）
+
+### 12.1 分四步提交
+
+| 步 | 内容 |
+|---|---|
+| D3.1 | 服务端：`catalog.*`、`rules.*`、`search.global` 方法；Host 的 Remote 接口、文件读写路由；Agent 的商品查询工具 |
+| D3.2 | 商品库页（虚拟列表、详情抽屉、新建 / 编辑 / 归档 / 删除）；设置里的"店铺"卡片 |
+| D3.3 | 导入商品（上传表格 → 对列 → 结果）；素材库页（缩略图网格、筛选、导入图片、标签、收藏、关联商品） |
+| D3.4 | 设置里的"规则包"卡片；输入框 `@` 引用商品；全局搜索接入商品和素材 |
+
+### 12.2 各层的分工
+
+```text
+界面插件 @prism/dsh-client-ui-catalog（packages/prism/ui-catalog，D3.2 起）
+  │  ctx.remote.prism.*（typert 生成的 Remote，界面插件自己 $mount，不改 dsh 的装配包）
+  │  GET  /api/prism/file?path=<相对路径>   缩略图、原图
+  │  POST /api/prism/upload?name=<文件名>   上传要导入的表格、图片、规则文件
+  ▼
+Host 插件
+  ├─ @prism/dsh-host-catalog（packages/prism/host-catalog）
+  │    ├─ PrismCatalog（namespace `prism`，26 个方法）：每个方法转调 ctx.prismService.call
+  │    └─ 两个文件路由（挂在 dsh Connection 的 /api 下）
+  ├─ @prism/dsh-tool-catalog（packages/prism/tool-catalog）：Agent 工具，挂在 prism 预设里
+  └─ @prism/dsh-host-service：拉起和重启 prism-service（D2）
+  ▼
+prism-service：catalog.* / rules.* / search.global（docs/prism/service-api.md 第 3.2 节）
+```
+
+- **三个 Host 包**：原想全放在 `host-service` 里，实现时改成三个，和 dsh 自己的分法一致：typert 要求 `@Remote` 控制器是包的主入口；Agent 工具按预设挂载，要单独一个插件；进程管理留在 `host-service`。三个包都只是转调服务，没有自己的业务规则。
+- **Remote 接口的类型**：商品、素材、店铺等类型在 `packages/prism/host-catalog/src/types.ts` 里照 Rust 的结构写一份（驼峰字段；Rust 的 `Option` 是 `null`，所以返回值里写成 `T | null`），界面和工具共用（`@prism/dsh-host-catalog/types`）。Rust 结构改了要同步改这里。规则包只列设置页用到的字段，其余原样带回。
+- **错误**：服务返回的错误统一转成 `RemoteError('prism/failed', 中文说明, { code, detail })`，界面按 `details.code` 区分（`not_found`、`invalid_input` 等），直接显示 `message`。
+- **文件**：服务返回素材的相对路径（相对数据目录），界面用 `/api/prism/file?path=<相对路径>` 显示。路由注册在 dsh Connection 上（`ctx.connection.fetch.register`），登录检查由 Connection 做，和 dsh 自己的上传路由一样；只允许数据目录里的图片（png、jpg、webp、gif），拒绝 `..`、绝对路径和盘符。
+- **上传**：浏览器拿不到本地文件路径，所以导入时先把文件传到 Host（`/api/prism/upload`，单个文件最大 50 MB，只收表格、图片、规则文件的扩展名，每次放进 `inbox/` 下新建的随机目录，同名文件不会覆盖），返回 Host 上的路径，再调导入方法。`inbox/` 里超过一天的目录在插件启动时清掉。
+- **Agent 工具**：`prism_search_products`（关键词查商品，最多 20 条，只给 id、名称、货号、类目、品牌、是否归档）、`prism_get_product`（商品详情：卖点、参数、成本、规格、素材和文案数量，去掉时间戳等无关字段），只读，不需要审批。写操作（新建、改商品）D3 不做工具，界面上做。
+- **店铺、规则包**放在"设置"里（dsh 的设置卡片），和原 `ui-design.md` 一致；商品库、素材库是左侧导航的全局页面（`main` 插槽 + `sidebar.panellist`，和"自动化任务"一样）。
+
+### 12.3 不做的
+
+- 原全局搜索里的"会话"组：会话搜索用 dsh 自带的。
+- 原全局搜索里的"批次"组：批次在 D4 才有，D4 再接。
+- 文案（`copies`）的界面：随 P5 文案模块做。

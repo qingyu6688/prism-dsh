@@ -52,6 +52,7 @@ describe('调用', () => {
     const service = await mount()
     await expect(service.call('service.ping')).resolves.toEqual({ pong: true })
     expect(service.status()).toEqual({ state: 'running', exits: 0 })
+    expect(service.dataDir()).toBe(join(root, 'data'))
     await expect(service.call('test.echo', { text: '第一行\n第二行' })).resolves.toEqual({ text: '第一行\n第二行' })
   })
 
@@ -152,6 +153,7 @@ describe('启动失败和卸载', () => {
   it('找不到可执行文件时插件照常加载，调用报 unavailable', async () => {
     const service = await mount([], { command: join(root, 'missing.exe') })
     expect(service.status().state).toBe('failed')
+    expect(service.dataDir()).toBeUndefined()
     const error = await rejection(service.call('service.ping'))
     expect(error.code).toBe('unavailable')
     expect(error.message).toContain('missing.exe')

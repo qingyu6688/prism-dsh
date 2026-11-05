@@ -69,3 +69,6 @@
     # 棱镜业务服务（Rust 的 prism-service 子进程），数据目录默认是 Harness home 下的 prism
     - id: prism-service
       name: '@prism/dsh-host-service'
+    # 商品库、规则包、搜索的 Remote 接口和文件路由（docs/prism/design.md 第 12 节）
+    - id: prism-catalog
+      name: '@prism/dsh-host-catalog'

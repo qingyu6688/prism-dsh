@@ -1,0 +1,19 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types"
+  },
+  "files": [
+    "src/index.ts",
+    "src/files.ts",
+    "src/types.ts"
+  ],
+  "references": [
+    { "path": "../../../vendor/cordis" },
+    { "path": "../../typert/protocol" },
+    { "path": "../../client/connection/tsconfig.host.json" },
+    { "path": "../../util/values" },
+    { "path": "../host-service" }
+  ]
+}

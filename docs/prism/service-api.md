@@ -1,6 +1,6 @@
 # prism-service 接口
 
-版本：0.1（2026-11-05，D2 已实现）
+版本：0.2（2026-11-05，D2 已实现；D3 的方法见 3.2 节）
 对应设计：`design.md` 第 4 节
 
 prism-service 是棱镜的 Rust 业务服务（商品库、规则包、表格导入导出、图片处理、生图调度），由 Host 插件 `@prism/dsh-host-service` 作为子进程启动，通过 stdin / stdout 上的 JSON-RPC 调用。
@@ -83,17 +83,49 @@ prism-service 是棱镜的 Rust 业务服务（商品库、规则包、表格导
 
 `service.*` 不需要参数，传了也忽略。
 
-### 3.2 业务方法（D3、D4 实现时补全）
+### 3.2 商品库、规则包、搜索（D3）
 
-沿用原仓库 `docs/api.md` 里已实现、测试过的命令，名称改成 `分组.方法` 的驼峰形式，参数和返回值保持一致：
+沿用原仓库 `docs/api.md` 1.7、1.8、1.10 里已实现、测试过的命令，参数和返回值保持一致（驼峰字段），只是命令名改成 `分组.方法`。分页结果统一是 `{ items, total }`，`limit` 不传或为 0 时 50 条，最多 200 条。
 
-| 分组 | 范围 | 计划 |
-|---|---|---|
-| `catalog.*` | 店铺、商品、规格、素材、文案、表格导入商品 | D3 |
-| `rules.*` | 规则包列表、导入、删除用户规则 | D3 |
-| `search.*` | 商品、素材、批次搜索 | D3 |
-| `image.*` | 生图配置、提交批次、批次状态、取消、结果 | D4 |
-| `imaging.*` | 缩放、裁切、白底检查、排版 | D4 |
+| 方法 | 参数 | 返回 | 原命令 |
+|---|---|---|---|
+| `catalog.listShops` | `{ platform? }` | `Shop[]` | `list_shops` |
+| `catalog.createShop` | `{ input: ShopInput }` | `Shop` | `create_shop` |
+| `catalog.updateShop` | `{ id, input: ShopInput }` | `Shop` | `update_shop` |
+| `catalog.deleteShop` | `{ id }` | `{}` | `delete_shop` |
+| `catalog.listProducts` | `{ filter: { keyword?, archived, limit, offset } }` | `Page<Product>` | `list_products` |
+| `catalog.productDetail` | `{ id }` | `ProductDetail` | `get_product_detail` |
+| `catalog.createProduct` | `{ input: ProductInput }` | `Product` | `create_product` |
+| `catalog.updateProduct` | `{ id, input: ProductInput }` | `Product` | `update_product` |
+| `catalog.archiveProduct` / `restoreProduct` / `deleteProduct` | `{ id }` | `{}` | 同名 |
+| `catalog.previewProductImport` | `{ path, sheet?, headerLine? }` | `ImportPreview` | `preview_product_import` |
+| `catalog.importProducts` | `{ path, sheet?, headerLine?, mapping, mode, saveAs?, matchedMappingId? }` | `ImportResult` | `import_products` |
+| `catalog.listImportMappings` | `{}` | `SavedMapping[]` | `list_import_mappings` |
+| `catalog.deleteImportMapping` | `{ id }` | `{}` | `delete_import_mapping` |
+| `catalog.listAssets` | `{ filter: { productId?, kind?, source?, tag?, keyword?, starredOnly, limit, offset } }` | `Page<Asset>` | `list_assets` |
+| `catalog.listAssetTags` | `{}` | `{ tag, count }[]` | `list_asset_tags`（原来是二元组） |
+| `catalog.importAssetFiles` | `{ paths, productId?, tags }` | `{ imported: { asset, deduplicated }[], failed: { path, message }[] }`，一个文件失败不影响其他 | `import_asset_files` |
+| `catalog.setAssetTags` | `{ id, tags }` | `Asset` | `set_asset_tags` |
+| `catalog.starAsset` | `{ id, starred }` | `{}` | `star_asset` |
+| `catalog.linkAsset` | `{ id, productId? }` | `{}` | `link_asset` |
+| `catalog.deleteAsset` | `{ id }` | `{}` | `delete_asset` |
+| `rules.list` | `{}` | `{ packs, wordLists, exportTemplates, problems }` | `list_rules` |
+| `rules.importFile` | `{ path }` | `{ kind, id, revision }`；校验不通过时 `detail` 是问题列表 `[{ path, message }]` | `import_rule_file` |
+| `rules.removeUser` | `{ kind, id }` | `{ removed }` | `remove_user_rule` |
+| `search.global` | `{ keyword }` | `{ products, assets }`，每组最多 5 条；关键词去掉空格后为空时都为空 | `global_search`（去掉会话组；批次组 D4 再加） |
+
+和原命令的差别：
+
+- 素材里的路径：`filePath`、`thumbPath` 是相对数据目录的路径（界面用 Host 的 `/prism/files/` 路由显示）；不再返回 `absoluteFilePath`、`absoluteThumbPath`。
+- 规则文件放在数据目录的 `rules/` 下，服务启动时加载，导入、删除后重新加载。
+- 导入表格、图片、规则文件时，`path` 是 Host 上的路径（界面先上传到 Host，见 `design.md` 第 12 节）。
+
+### 3.3 生图（D4 实现时补全）
+
+| 分组 | 范围 |
+|---|---|
+| `image.*` | 生图配置、提交批次、批次状态、取消、结果 |
+| `imaging.*` | 缩放、裁切、白底检查、排版 |
 
 ## 4. Host 侧：`ctx.prismService`
 

@@ -1653,10 +1653,15 @@ name = "prism-service"
 version = "0.3.0"
 dependencies = [
  "clap",
+ "image",
+ "prism-catalog",
  "prism-core",
+ "prism-io",
+ "prism-rules",
  "prism-store",
  "serde",
  "serde_json",
+ "serde_path_to_error",
  "tempfile",
  "thiserror",
  "tokio",

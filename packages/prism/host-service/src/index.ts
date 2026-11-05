@@ -183,6 +183,7 @@ export class PrismService extends Service {
   private ready = deferred<RpcConnection>()
   private restartTimer: ReturnType<typeof setTimeout> | undefined
   private disposed = false
+  private resolvedDataDir: string | undefined
 
   /**
    * @param ctx - 插件上下文，需要 `subprocess`。
@@ -202,6 +203,7 @@ export class PrismService extends Service {
       return
     }
     const dataDir = this.config.dataDir ?? join(resolveDshHome(), 'prism')
+    this.resolvedDataDir = dataDir
     try {
       mkdirSync(dataDir, { recursive: true })
     } catch (error) {
@@ -209,6 +211,14 @@ export class PrismService extends Service {
       return
     }
     this.launch(command, dataDir)
+  }
+
+  /**
+   * 服务使用的数据目录（素材文件、上传的文件都在这下面）。
+   * @returns 绝对路径；找不到可执行文件、还没确定数据目录时为 `undefined`。
+   */
+  dataDir(): string | undefined {
+    return this.resolvedDataDir
   }
 
   /**
