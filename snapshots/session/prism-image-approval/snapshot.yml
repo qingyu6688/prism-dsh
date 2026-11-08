@@ -1,0 +1,10 @@
+version: 1
+scenario: prism-image-approval
+profile: headless
+composition: prism-image-approval
+recording: authored
+header:
+  class: prism-image-approval
+  pin: true
+replay:
+  override: true

@@ -1,5 +1,5 @@
 /**
- * 全局搜索框（Ctrl+Shift+K，或商品库、素材库页头的搜索按钮）：搜商品和素材，上下键选、回车打开。
+ * 全局搜索框（Ctrl+Shift+K，或商品库、素材库页头的搜索按钮）：搜商品、素材和生图批次，上下键选、回车打开。
  * 商品打开商品库的详情抽屉；素材打开素材库并按同一个关键词筛选。会话搜索用 dsh 自带的（Ctrl+K）。
  */
 import clsx from 'clsx'
@@ -22,7 +22,7 @@ export interface SearchPaletteProps {
 /** 结果列表里的一项。 */
 interface Row {
   readonly key: string
-  readonly kind: 'product' | 'asset'
+  readonly kind: 'product' | 'asset' | 'batch'
   readonly title: string
   readonly detail: string
   readonly thumb: string | null
@@ -81,6 +81,11 @@ export function SearchPalette({ api, t, navigator }: SearchPaletteProps) {
       detail: asset.tags.join('、'), thumb: asset.thumbPath,
       open: () => { navigator.showAssets(keyword.trim()) },
     })),
+    ...load.results.batches.map(batch => ({
+      key: `b-${batch.id}`, kind: 'batch' as const, title: t('image.batchTitle', { seq: batch.seq }),
+      detail: t(`image.status.${batch.status}`), thumb: null,
+      open: () => { navigator.showImageBatch(batch.id) },
+    })),
   ]
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
@@ -125,6 +130,7 @@ export function SearchPalette({ api, t, navigator }: SearchPaletteProps) {
         {load.status === 'ready' && rows.length === 0 ? <p className={css.muted}>{t('search.empty')}</p> : null}
         {group('product', t('search.products'))}
         {group('asset', t('search.assets'))}
+        {group('batch', t('image.results'))}
       </div>
     </Modal>
   )

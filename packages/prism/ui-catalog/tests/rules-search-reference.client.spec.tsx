@@ -18,7 +18,7 @@ import type { Translate } from '../src/client/ProductForm.tsx'
 import { ProductsPage } from '../src/client/ProductsPage.tsx'
 import { imageSummary, localized, RulesSection } from '../src/client/RulesSection.tsx'
 import { SearchPalette } from '../src/client/SearchPalette.tsx'
-import { asset, fakeApi, product, RULES } from './fake-api.ts'
+import { asset, fakeApi, product, RULES } from './fake-api.client.ts'
 
 const t = makeTranslate(zh) as Translate
 const session = { sessionId: 's1' as SessionId }
@@ -97,7 +97,7 @@ describe('全局搜索', () => {
     render(<SearchPalette api={api} t={t} navigator={nav} />)
     expect(screen.queryByRole('dialog')).toBeNull()
     act(() => { nav.openSearch() })
-    const input = await screen.findByLabelText('商品名称、货号、类目、品牌，或素材标题、标签')
+    const input = await screen.findByLabelText('商品名称、货号、类目、品牌，或素材标题、标签、批次号')
     expect(screen.getByText('上下键选择，回车打开。会话用左侧的搜索（Ctrl+K）。')).toBeTruthy()
     fireEvent.change(input, { target: { value: ' 亚麻 ' } })
     const products = await screen.findByRole('region', { name: '商品' })
@@ -115,7 +115,7 @@ describe('全局搜索', () => {
     const { nav, select } = navigator()
     render(<SearchPalette api={api} t={t} navigator={nav} />)
     act(() => { nav.openSearch() })
-    const input = await screen.findByLabelText('商品名称、货号、类目、品牌，或素材标题、标签')
+    const input = await screen.findByLabelText('商品名称、货号、类目、品牌，或素材标题、标签、批次号')
     fireEvent.change(input, { target: { value: '亚麻' } })
     await screen.findByRole('region', { name: '素材' })
     fireEvent.keyDown(input, { key: 'ArrowDown' })
@@ -124,12 +124,25 @@ describe('全局搜索', () => {
     expect(nav.snapshot().assetKeyword?.value).toBe('亚麻')
   })
 
+  it('按批次号搜索并打开对应的生图结果', async () => {
+    const api = fakeApi()
+    api.search.mockResolvedValue({ products: [], assets: [], batches: [{ id: 'b7', seq: 7, status: 'completed', total: 2 }] })
+    const { nav, select } = navigator()
+    render(<SearchPalette api={api} t={t} navigator={nav} />)
+    act(() => { nav.openSearch() })
+    fireEvent.change(await screen.findByLabelText('商品名称、货号、类目、品牌，或素材标题、标签、批次号'), { target: { value: '#7' } })
+    fireEvent.click(await screen.findByRole('button', { name: /批次 #7/ }))
+    expect(api.search).toHaveBeenCalledWith('#7')
+    expect(select).toHaveBeenCalledWith('prism-images')
+    expect(nav.snapshot()).toMatchObject({ searchOpen: false, imageBatch: 'b7' })
+  })
+
   it('没有结果、出错时说明', async () => {
     const api = fakeApi()
     const { nav } = navigator()
     render(<SearchPalette api={api} t={t} navigator={nav} />)
     act(() => { nav.openSearch() })
-    const input = await screen.findByLabelText('商品名称、货号、类目、品牌，或素材标题、标签')
+    const input = await screen.findByLabelText('商品名称、货号、类目、品牌，或素材标题、标签、批次号')
     fireEvent.change(input, { target: { value: '没有的东西' } })
     expect(await screen.findByText('没有找到')).toBeTruthy()
     api.search.mockRejectedValueOnce(new CatalogRequestError('棱镜业务服务不可用', 'unavailable'))
@@ -144,15 +157,15 @@ describe('全局搜索', () => {
     act(() => { nav.showProduct('p1') })
     // 归档的商品不在在用列表里，也能从搜索打开详情
     expect(await screen.findByRole('complementary', { name: '亚麻衬衫' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: '搜索商品和素材' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '搜索商品、素材和批次' })).toBeTruthy()
     unmount()
 
     render(<AssetsPage api={api} t={t} navigator={nav} />)
     await screen.findByText('共 2 个')
     act(() => { nav.showAssets('主图') })
     expect(await screen.findByText('共 1 个')).toBeTruthy()
-    expect((screen.getByLabelText('搜索标题、文字内容、标签')).value).toBe('主图')
-    fireEvent.click(screen.getByRole('button', { name: '搜索商品和素材' }))
+    expect((screen.getByLabelText<HTMLInputElement>('搜索标题、文字内容、标签')).value).toBe('主图')
+    fireEvent.click(screen.getByRole('button', { name: '搜索商品、素材和批次' }))
     expect(nav.snapshot().searchOpen).toBe(true)
   })
 })
@@ -197,7 +210,8 @@ describe('@ 引用商品', () => {
     // 会话引用不是商品引用
     expect(productReferenceRule.match(text, end, { read: () => undefined } as never)).toBeUndefined()
 
-    render(<ProductReference node={node!} raw={mention} {...({} as never)} />)
+    if (node?.id !== 'prism-product') throw new Error('没有识别出商品引用')
+    render(<ProductReference node={node} raw={mention} />)
     const chip = screen.getByText('亚麻衬衫')
     expect(chip.getAttribute('title')).toBe('@[亚麻衬衫](prism-product:p1)')
   })

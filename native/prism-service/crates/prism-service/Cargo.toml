@@ -11,6 +11,12 @@ publish.workspace = true
 [dependencies]
 clap.workspace = true
 prism-catalog.workspace = true
+prism-engine.workspace = true
+prism-pipeline.workspace = true
+prism-provider.workspace = true
+reqwest.workspace = true
+sha2.workspace = true
+keyring = { version = "3", default-features = false, features = ["windows-native", "apple-native", "linux-native"] }
 prism-core.workspace = true
 prism-io.workspace = true
 prism-rules.workspace = true
@@ -26,6 +32,7 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 
 [dev-dependencies]
+mock-image-api = { path = "../mock-image-api" }
 image.workspace = true
 tempfile.workspace = true
 

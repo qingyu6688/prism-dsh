@@ -1,7 +1,7 @@
 {
   "name": "@prism/dsh-bundle-desktop",
   "description": "棱镜桌面端的组合包：在 dsh-base 和 dsh-web-app 之上去掉开发者功能和遥测，加上棱镜的插件",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
@@ -35,6 +35,7 @@
     "@prism/dsh-client-ui-catalog": "workspace:*",
     "@prism/dsh-host-catalog": "workspace:*",
     "@prism/dsh-host-service": "workspace:*",
-    "@prism/dsh-tool-catalog": "workspace:*"
+    "@prism/dsh-tool-catalog": "workspace:*",
+    "@prism/dsh-credentials-wincred": "workspace:*"
   }
 }

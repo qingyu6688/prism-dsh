@@ -23,7 +23,7 @@ function fileRequest(path: string, method = 'GET'): Request {
 }
 
 function uploadRequest(name: string, body: string | Uint8Array, headers: Record<string, string> = {}): Request {
-  return new Request(`http://localhost${UPLOAD_PATH}?name=${encodeURIComponent(name)}`, { method: 'POST', body, headers })
+  return new Request(`http://localhost${UPLOAD_PATH}?name=${encodeURIComponent(name)}`, { method: 'POST', body: typeof body === 'string' ? body : new Uint8Array(body), headers })
 }
 
 describe('resolveInside', () => {

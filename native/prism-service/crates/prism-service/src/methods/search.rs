@@ -1,6 +1,6 @@
 //! `search.global`：商品、素材各取前几条（原 Tauri 版 `search_commands.rs`）。
 //!
-//! 会话搜索用 dsh 自带的；批次在 D4 有了生图之后再加。
+//! 会话搜索用 dsh 自带的；生图批次按序号精确查找。
 
 use prism_catalog::{Asset, AssetFilter, Product, ProductFilter};
 use serde::{Deserialize, Serialize};
@@ -21,6 +21,7 @@ struct Global {
 struct Results {
     products: Vec<Product>,
     assets: Vec<Asset>,
+    batches: Vec<Value>,
 }
 
 pub(super) async fn dispatch(
@@ -58,5 +59,16 @@ pub(super) async fn dispatch(
         .await
         .map_err(fail)?
         .items;
-    reply(Results { products, assets })
+    let mut batches = Vec::new();
+    if let Ok(seq) = keyword.trim_start_matches('#').parse::<i64>()
+        && let Some(batch) = ctx.store.batch_by_seq(seq).await.map_err(fail)?
+        && batch.module == "image"
+    {
+        batches.push(serde_json::json!({"id":batch.id,"seq":batch.seq,"status":batch.status,"total":batch.total_jobs}));
+    }
+    reply(Results {
+        products,
+        assets,
+        batches,
+    })
 }

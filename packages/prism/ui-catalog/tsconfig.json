@@ -17,6 +17,8 @@
     { "path": "../../client/ui-renderer" },
     { "path": "../../client/ui-settings/tsconfig.client.json" },
     { "path": "../../client/ui-sidebar" },
+    { "path": "../../client/ui-sidebar-right" },
+    { "path": "../../client/ui-tool" },
     { "path": "../../client/ui-slots" },
     { "path": "../../typert/protocol" },
     { "path": "../host-catalog" }

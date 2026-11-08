@@ -75,3 +75,8 @@
     # 商品库页面和设置里的店铺
     - id: ui-prism-catalog
       name: '@prism/dsh-client-ui-catalog'
+
+# 文本模型与生图密钥保存到系统凭据管理器。
+- id: credentials
+  name: '@prism/dsh-credentials-wincred'
+  config: {}

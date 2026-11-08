@@ -1,7 +1,7 @@
 {
   "name": "@prism/dsh-host-service",
   "description": "棱镜业务服务的 Host 插件：拉起 prism-service 子进程，通过 JSON-RPC 调用，崩溃后自动重启（ctx.prismService）",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "lib/index.js",

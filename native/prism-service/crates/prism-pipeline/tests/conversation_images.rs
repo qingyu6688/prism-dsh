@@ -143,10 +143,19 @@ async fn generation_and_fission_use_image_profiles_and_persist_results() {
 fn rejects_invalid_image_requests() {
     for value in [
         serde_json::json!({"prompt":""}),
-        serde_json::json!({"prompt":"水杯","count":17}),
+        serde_json::json!({"prompt":"水杯","count":201}),
         serde_json::json!({"prompt":"水杯","size":"90000x90000"}),
     ] {
         let args: ImageArgs = serde_json::from_value(value).unwrap();
         assert!(args.validate(false).is_err());
+    }
+}
+
+#[test]
+fn accepts_batch_size_boundaries() {
+    for count in [1, 40, 41, 200] {
+        let args: ImageArgs =
+            serde_json::from_value(serde_json::json!({"prompt":"水杯","count":count})).unwrap();
+        assert!(args.validate(false).is_ok());
     }
 }

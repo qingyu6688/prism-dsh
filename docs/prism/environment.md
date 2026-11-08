@@ -69,3 +69,22 @@ sed -i -E 's#, tarball: https://registry\.npmmirror\.com/[^}]*\}#}#' pnpm-lock.y
 已知现象：启动时报 `No handler registered for 'dsh-desktop:mandatory-status'`（强制更新状态的处理器在开发模式下没有注册），界面不受影响，待确认是否是开发模式的正常现象。
 
 还没验证：和模型对话（需要 API Key）、Windows 安装包打包。
+
+## 2026-11-05 当前终端实测
+
+以下结果来自本次 Codex 终端；不同终端的 PATH 可能选中不同版本，执行构建前应核对当前命令。
+
+| 项 | 实测结果 |
+|---|---|
+| 操作系统 | Windows 11 专业版 10.0.26200，64 位 |
+| Node.js | 24.9.0，命令位于 `E:\nvm\nodejs\node.exe` |
+| npm | 11.6.0 |
+| pnpm | 11.25.0，来自 Codex 运行时；根 `package.json` 声明 11.28.5 |
+| Java | 17.0.8 LTS |
+| Python / pip | Python 3.12.3 / pip 25.2 |
+| Git | 2.47.1.windows.1 |
+| MySQL 客户端 | 8.0.46；棱镜业务库使用 SQLite，此项仅记录本机工具版本 |
+| Rust / Cargo | rustc 1.96.0 / cargo 1.96.0，命令位于 `F:\rust\cargo\bin` |
+| 本地环境变量 | `CARGO_HOME` 已设置；`DSH_HOME`、`PRISM_SERVICE_BIN`、`DEEPSEEK_API_KEY`、`DEEPSEEK_BASE_URL` 未设置；根目录没有 `.env` |
+
+本次只检查开发环境，没有启动应用或连接模型。

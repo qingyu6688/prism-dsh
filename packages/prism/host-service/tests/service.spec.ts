@@ -36,6 +36,7 @@ async function mount(extraArgs: string[] = [], overrides: Partial<Config> = {}):
     command: process.execPath,
     args: [fakeService, ...extraArgs],
     dataDir: join(root, 'data'),
+    logLevel: 'warn', callTimeoutMs: 30_000, shutdownGraceMs: 45_000,
     ...overrides,
   })
   return ctx.prismService
@@ -185,7 +186,7 @@ const realBinary = resolveServiceCommand(undefined, {})
 describe.skipIf(realBinary === undefined)('真 prism-service', () => {
   it('ping 和 version', async () => {
     const dataDir = join(root, '真服务数据')
-    await ctx.plugin(PrismService, { command: realBinary, dataDir, logLevel: 'warn' })
+    await ctx.plugin(PrismService, { command: realBinary!, dataDir, logLevel: 'warn', args: [], callTimeoutMs: 30_000, shutdownGraceMs: 45_000 })
     const service = ctx.prismService
     await expect(service.call('service.ping')).resolves.toEqual({ pong: true })
     const version = await service.call<{ version: string; dataDir: string; schemaVersion: number }>('service.version')

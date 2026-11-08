@@ -4,12 +4,33 @@
     "rootDir": "src",
     "outDir": "lib/types"
   },
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "references": [
-    { "path": "../../../vendor/cordis" },
-    { "path": "../../core/tools" },
-    { "path": "../../util/values" },
-    { "path": "../host-catalog" },
-    { "path": "../host-service" }
+    {
+      "path": "../../../vendor/cordis"
+    },
+    {
+      "path": "../../core/tools"
+    },
+    {
+      "path": "../../util/values"
+    },
+    {
+      "path": "../host-catalog"
+    },
+    {
+      "path": "../host-service"
+    },
+    {
+      "path": "../../jobs/jobs"
+    },
+    {
+      "path": "../../interaction/user-approval"
+    },
+    {
+      "path": "../../../vendor/schemastery"
+    }
   ]
 }

@@ -356,7 +356,16 @@ export interface ImportedRule {
 
 // ---------- 搜索 ----------
 
+/** 按批次号定位到持久化生图结果。 */
+export interface ImageBatchHit {
+  readonly id: string
+  readonly seq: number
+  readonly status: ImageBatch['status']
+  readonly total: number
+}
+
 export interface SearchResults {
+  readonly batches: readonly ImageBatchHit[]
   readonly products: readonly Product[]
   readonly assets: readonly Asset[]
 }
@@ -388,4 +397,51 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     /** 棱镜业务服务返回了错误，或者服务没在运行。放在类型文件里，浏览器端只引用类型也能拿到。 */
     'prism/failed': PrismFailureDetails
   }
+}
+
+
+/** 生图接口的可编辑配置；空 API Key 保留已保存的密钥。 */
+export interface ImageProfileInput {
+  readonly id?: string
+  readonly name: string
+  readonly baseUrl: string
+  readonly model: string
+  readonly providerType: 'openai_images' | 'async_task'
+  readonly apiKey?: string
+  readonly maxConcurrency: number
+  readonly timeoutSecs: number
+}
+/** 配置读取结果不含秘密。 */
+export interface ImageProfile {
+  readonly id: string
+  readonly name: string
+  readonly baseUrl: string
+  readonly model: string
+  readonly providerType: 'openai_images' | 'async_task'
+  readonly maxConcurrency: number
+  readonly timeoutSecs: number
+  readonly enabled: boolean
+  readonly disabledReason: string | null
+  readonly hasKey: boolean
+}
+/** 每张图对应一个持久化任务；参考图片必须是素材 ID。 */
+export interface ImageArgs {
+  readonly prompt: string
+  readonly count: number
+  readonly referenceIds: readonly string[]
+  readonly productId?: string
+  readonly size?: string
+}
+/** 批次的持久化状态和已生成素材。 */
+export interface ImageBatch {
+  readonly seq: number
+  readonly id: string
+  readonly owner: string | null
+  readonly status: 'pending' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'
+  readonly total: number
+  readonly succeeded: number
+  readonly failed: number
+  readonly reason: string | null
+  readonly assets: readonly Asset[]
+  readonly errors: readonly string[]
 }

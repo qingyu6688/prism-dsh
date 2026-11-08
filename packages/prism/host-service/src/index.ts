@@ -39,8 +39,6 @@ const EXIT_WINDOW_MS = 30_000
 const MAX_EXITS = 3
 /** 启动后等 `service.ping` 响应的时间，超过就结束进程走重启。 */
 const STARTUP_TIMEOUT_MS = 15_000
-/** 卸载时关闭 stdin 后等服务自己退出的时间，超过就强制结束。 */
-const SHUTDOWN_GRACE_MS = 12_000
 /** 服务端单条消息上限是 16 MB，Host 这边对响应用同样的上限。 */
 const MAX_MESSAGE_BYTES = 16 * 1024 * 1024
 /** 转发到日志的 stderr 单行长度上限。 */
@@ -70,6 +68,8 @@ export interface Config {
   logLevel: LogLevel
   /** 默认调用超时（毫秒）。 */
   callTimeoutMs: number
+  /** 关闭输入后等待请求排空和生图引擎退出的时间，单位毫秒。 */
+  shutdownGraceMs: number
 }
 
 interface Deferred<T> {
@@ -172,6 +172,7 @@ export class PrismService extends Service {
     args: z.array(String).default([]),
     dataDir: z.string(),
     logLevel: z.union(['error', 'warn', 'info', 'debug'] as const).default('info'),
+    shutdownGraceMs: z.number().min(1).max(MAX_TIMER_MS).default(45_000),
     callTimeoutMs: z.number().min(1).max(MAX_TIMER_MS).default(30_000),
   })
 
@@ -398,7 +399,7 @@ export class PrismService extends Service {
     }
     // 关闭 stdin 后服务会处理完进行中的请求再退出；超时就强制结束
     generation.handle.stdin?.end()
-    const timer = setTimeout(() => { generation.handle.terminate() }, SHUTDOWN_GRACE_MS)
+    const timer = setTimeout(() => { generation.handle.terminate() }, this.config.shutdownGraceMs)
     try {
       await generation.handle.done
     } catch (error) {

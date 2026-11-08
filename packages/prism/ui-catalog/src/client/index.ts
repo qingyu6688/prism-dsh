@@ -5,7 +5,9 @@
  * 先挂上 `@prism/dsh-host-catalog` 生成的 Remote（`ctx.remote.prism`），再注册界面；Remote 和界面同生共死，
  * 不改 dsh 的 Remote 装配包。接口设计见 `docs/prism/design.md` 第 12 节。
  */
-import { createElement } from 'react'
+import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
+import type {} from '@deepseek-ai/dsh-client-ui-tool/client'
+import { createElement, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
@@ -21,6 +23,9 @@ import type { TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import remote from '@prism/dsh-host-catalog/remote'
 import { createCatalogApi, type CatalogApi } from './api.ts'
 import { AssetsPage } from './AssetsPage.tsx'
+import { createImageApi, type ImageApi } from './image-api.ts'
+import { ImageToolCard } from './ImageToolCard.tsx'
+import { ImageSettings, ImageResults } from './Images.tsx'
 import { en, zh, type CatalogKey } from './locales.ts'
 import { CatalogNavigator } from './navigator.ts'
 import { createProductSource, ProductReference, productReferenceRule } from './product-reference.tsx'
@@ -48,6 +53,7 @@ export const inject = ['slots', 'locale', 'remote']
 
 interface Injected {
   readonly api: CatalogApi
+  readonly imageApi: ImageApi
   readonly navigator: CatalogNavigator
 }
 
@@ -57,6 +63,12 @@ type OverlayProps = PropsRuntime<'shell.overlay'> & PropsLocale<'prism.catalog'>
 
 function ProductsMain({ api, t, navigator }: MainProps) {
   return createElement(ProductsPage, { api, t, navigator })
+}
+
+function ImagesMain({ imageApi, t, navigator }: MainProps) {
+  const state = useSyncExternalStore(navigator.subscribe, navigator.snapshot)
+  return createElement(ImageResults, { api: imageApi, t, ...(state.imageBatch ? { batchId: state.imageBatch } : {}),
+    onShowAll: () => { navigator.showImageBatch() } })
 }
 
 function AssetsMain({ api, t, navigator }: MainProps) {
@@ -111,7 +123,15 @@ export function registerUi(ctx: Context): void {
     (panel) => { ctx.get('layout')?.selectPanel(panel as MainPanelId) },
     { products: PRODUCTS_PANEL, assets: ASSETS_PANEL },
   )
-  const injected = (): Injected => ({ api, navigator })
+  const imageApi = createImageApi(ctx.remote.prism, t('unreachable'))
+  const injected = (): Injected => ({ api, imageApi, navigator })
+
+  ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: 'prism-images', locale: NS, inject: injected },
+    ImagesMain))
+  ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({ name: 'sidebar.panellist', id: 'prism-images', order: 7, locale: NS, label: () => t('image.results') }, AssetsIcon))
+  ctx.slots.inject('settings.section', () => ctx.slots.register({ name: 'settings.section', id: 'prism-image-settings', order: 32, locale: NS, label: () => t('image.settings'), inject: injected },
+    ({ imageApi, t }: SectionProps) => createElement(ImageSettings, { api: imageApi, t })))
+  ctx.slots.inject('settings.section.icon', () => ctx.slots.register({ name: 'settings.section.icon', id: 'prism-image-settings' }, AssetsIcon))
 
   ctx.slots.inject('main', () => ctx.slots.register({
     name: 'main', key: PRODUCTS_PANEL, locale: NS, inject: injected,
@@ -137,6 +157,22 @@ export function registerUi(ctx: Context): void {
   ctx.slots.inject('settings.section.icon', () => ctx.slots.register({
     name: 'settings.section.icon', id: 'prism-rules',
   }, RulesIcon))
+
+  ctx.inject(['sidebarRightTabs'], (inner) => {
+    inner.effect(() => inner.sidebarRightTabs.register({
+      id: 'prism-images', kind: 'prism-images', title: () => t('image.results'),
+      guide: [{ id: 'images', order: 30, title: () => t('image.results') }],
+    }), 'prism-images: right sidebar')
+    inner.slots.inject('sidebar.right.pane.tab', () => inner.slots.register({
+      name: 'sidebar.right.pane.tab', key: 'prism-images', locale: NS,
+      inject: sessionId => ({ api: imageApi, owner: sessionId }),
+    }, ImageResults))
+  })
+  for (const key of ['prism_generate_images', 'prism_fission_images']) {
+    ctx.slots.inject('tool.call.toolview', () => ctx.slots.register({
+      name: 'tool.call.toolview', key, locale: NS, inject: () => ({ api: imageApi }),
+    }, ImageToolCard))
+  }
 
   // 全局搜索框和它的快捷键
   ctx.slots.inject('shell.overlay', () => ctx.slots.register({

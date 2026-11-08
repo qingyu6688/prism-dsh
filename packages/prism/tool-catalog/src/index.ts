@@ -1,21 +1,33 @@
 /**
- * 给 Agent 用的商品库查询工具：`prism_search_products`（按关键词查商品）、`prism_get_product`（商品详情）。
- * 只读，不需要审批。写操作（新建、修改商品）在界面上做，D3 不给工具。
+ * 给 Agent 用的商品查询与生图工具。生图交给会话所属的后台任务，超过 40 张先审批。
+ * 商品查询只读；商品的新增和修改由界面提供。
  *
  * 工具通过 `ctx.prismService` 调棱镜业务服务，挂在棱镜的 Agent 预设里（`presets/prism.patch.yml`）。
  * @module @prism/dsh-tool-catalog
  */
-
 import type { Context } from '@deepseek-ai/cordis'
+import z from '@deepseek-ai/schemastery'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { Product, ProductDetail, ProductPage } from '@prism/dsh-host-catalog/types'
 import type {} from '@prism/dsh-host-service'
+import { registerImageTools } from './image.ts'
 
 /** Cordis 插件名。 */
 export const name = 'prism-tool-catalog'
 /** 注册和执行工具需要的服务。 */
 export const inject = ['tools', 'prismService']
+
+/** 生图后台任务的查询频率。 */
+export interface Config {
+  /** 批次状态查询间隔，单位毫秒。 */
+  imagePollIntervalMs: number
+}
+
+/** 部署可调整查询频率，避免大量批次同时运行时频繁访问数据库。 */
+export const Config = z.object({
+  imagePollIntervalMs: z.number().step(1).min(100).max(60_000).default(1_000),
+})
 
 /** 搜索结果最多给模型几条，再多也看不过来。 */
 export const SEARCH_LIMIT = 20
@@ -80,10 +92,12 @@ export function productForModel(detail: ProductDetail): JsonValue {
 }
 
 /**
- * 注册两个查询工具。
+ * 注册商品查询工具；后台任务和审批服务就绪后注册生图工具。
  * @param ctx - 带 `tools` 和 `prismService` 的上下文。
+ * @param config - 生图任务查询间隔。
  */
-export function apply(ctx: Context): void {
+export function apply(ctx: Context, config: Config): void {
+  ctx.inject(['jobs', 'approval'], (inner) => { registerImageTools(inner, config.imagePollIntervalMs) })
   ctx.tools.register(defineTool({
     name: 'prism_search_products',
     description: `在棱镜商品库里按关键词查商品，在名称、货号、类目、品牌里搜索，按最近更新排，最多返回 ${SEARCH_LIMIT} 条。`

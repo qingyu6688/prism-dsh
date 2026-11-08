@@ -1,7 +1,6 @@
 # prism-service 接口
 
-版本：0.2（2026-11-05，D2 已实现；D3 的方法见 3.2 节）
-对应设计：`design.md` 第 4 节
+版本：0.3（2026-11-05，含 D4 生图接口）。对应设计：[系统设计](design.md)第 4、13 节。
 
 prism-service 是棱镜的 Rust 业务服务（商品库、规则包、表格导入导出、图片处理、生图调度），由 Host 插件 `@prism/dsh-host-service` 作为子进程启动，通过 stdin / stdout 上的 JSON-RPC 调用。
 
@@ -13,7 +12,7 @@ prism-service 是棱镜的 Rust 业务服务（商品库、规则包、表格导
 | 启动参数 | `prism-service --data-dir <目录>`；`--log-level <error\|warn\|info\|debug>` 可选，默认 `info` |
 | 数据目录 | 存放 SQLite 数据库 `prism.db`、素材文件、用户规则包；不存在时自动创建 |
 | 目录锁 | 启动时在数据目录下独占 `prism-service.lock`；拿不到锁说明已有服务在用这个目录，以退出码 3 退出，stderr 写明原因 |
-| 退出 | stdin 关闭（Host 退出或主动断开）或收到 `service.shutdown` 时，停止接收新请求，等进行中的请求结束（最多 10 秒），然后退出，退出码 0 |
+| 退出 | stdin 关闭（Host 退出或主动断开）或收到 `service.shutdown` 时，停止接收新请求，等进行中的请求结束（最多 10 秒），再停止生图引擎（最多 30 秒），然后退出，退出码 0 |
 | 日志 | 写 stderr，每行一条；Host 插件转到 dsh 的日志里。不写 API Key、图片内容 |
 | 崩溃重启 | Host 插件负责：非正常退出后 1 秒重启；连续 3 次在 30 秒内退出就不再重启，并报告错误 |
 
@@ -68,7 +67,7 @@ prism-service 是棱镜的 Rust 业务服务（商品库、规则包、表格导
 通知（服务 → Host，没有 `id`）：
 
 ```json
-{"jsonrpc":"2.0","method":"image.batchProgress","params":{"batchId":"…","succeeded":3,"failed":0,"total":10}}
+{"jsonrpc":"2.0","method":"image.changed","params":{"batchId":"…","succeeded":3,"failed":0,"total":10}}
 ```
 
 ## 3. 方法
@@ -112,7 +111,7 @@ prism-service 是棱镜的 Rust 业务服务（商品库、规则包、表格导
 | `rules.list` | `{}` | `{ packs, wordLists, exportTemplates, problems }` | `list_rules` |
 | `rules.importFile` | `{ path }` | `{ kind, id, revision }`；校验不通过时 `detail` 是问题列表 `[{ path, message }]` | `import_rule_file` |
 | `rules.removeUser` | `{ kind, id }` | `{ removed }` | `remove_user_rule` |
-| `search.global` | `{ keyword }` | `{ products, assets }`，每组最多 5 条；关键词去掉空格后为空时都为空 | `global_search`（去掉会话组；批次组 D4 再加） |
+| `search.global` | `{ keyword }` | `{ products, assets, batches }`；商品和素材各最多 5 条，数字或 `#数字` 精确匹配生图批次号；空关键词返回空组 | `global_search`（会话由 dsh 管理） |
 
 和原命令的差别：
 
@@ -120,30 +119,56 @@ prism-service 是棱镜的 Rust 业务服务（商品库、规则包、表格导
 - 规则文件放在数据目录的 `rules/` 下，服务启动时加载，导入、删除后重新加载。
 - 导入表格、图片、规则文件时，`path` 是 Host 上的路径（界面先上传到 Host，见 `design.md` 第 12 节）。
 
-### 3.3 生图（D4 实现时补全）
+### 3.3 生图与系统凭据
 
-| 分组 | 范围 |
-|---|---|
-| `image.*` | 生图配置、提交批次、批次状态、取消、结果 |
-| `imaging.*` | 缩放、裁切、白底检查、排版 |
+| 方法 | 参数 | 返回 |
+|---|---|---|
+| `image.listProfiles` | `{}` | 配置数组；含 `hasKey`，不含密钥 |
+| `image.saveProfile` | `{ id?, name, baseUrl, model, providerType, apiKey?, maxConcurrency, timeoutSecs }` | 保存后的配置；编辑时密钥为空则保留 |
+| `image.deleteProfile` | `{ id }` | `{}`；删除配置及系统密钥 |
+| `image.testProfile` | `{ id }` | `{ supported, models }`；查询模型列表，不产生生图费用 |
+| `image.submitBatch` | `{ owner, args: { prompt, count?, referenceIds?, productId?, size? }, fission? }` | 批次状态；`owner` 是 dsh Session ID |
+| `image.batchStatus` / `image.cancelBatch` | `{ id }` | 批次状态 |
+| `image.listBatches` | `{}` | 最近 100 个批次中的生图批次，倒序 |
+| `credentials.get` / `set` / `delete` | `{ key, value? }` | 值或 `null`；写、删返回 `{}` |
+| `credentials.list` | `{}` | 凭据名称索引，不含值 |
+
+生图配置支持 `openai_images` 和 `async_task`。接口地址必须是无凭据、无查询参数的 HTTP(S) 地址；并发 1～64，超时 10～1800 秒。`async_task` 使用 `prism-provider` 的默认提交和轮询协议，任意厂商的自定义协议尚未开放配置。
+
+批次返回 `{ id, seq, owner, status, total, succeeded, failed, reason, assets, errors }`。素材路径相对业务数据目录，原图和缩略图通过 `/api/prism/file?path=…` 读取。每张图对应一个任务，数量 1～200，图裂变必须提供参考素材 ID；不接受模型传任意本地文件路径。用户删除素材后，历史批次只显示仍存在的图片，完成计数不变。取消后保留已生成素材；已经发给上游的请求可能仍产生费用。
+
+`image.submitBatch` 和 `credentials.*` 不暴露为浏览器 Remote。生图工具先通过 dsh 审批和后台任务管理，再提交 Rust 批次；超过 40 张必须得到一次性许可。工具返回 `{ jobId, batchId, count, message }`，结果卡片从已记录的 `batchId` 读取图片，后台任务完成结果进入原会话。引擎恢复持久化任务后可在结果页查看；dsh 内存中的任务观察记录不跨进程恢复。
+
+引擎通知统一为 `image.changed`，`params` 是 `EngineEvent`。通知可能合并或因订阅落后而丢弃，数据库查询才是完整状态。界面每 2 秒刷新，后台任务默认每秒查询，可通过工具插件的 `imagePollIntervalMs` 调整。
+
+凭据由本机系统凭据管理器保存，以业务数据目录的规范路径摘要区分命名空间；SQLite 只存名称索引。文本模型使用 `ref/…` 和 `record/…`，生图使用 `image/<配置 ID>`。这组 RPC 只供可信的本地 Host 使用，不是网络密钥导出接口。
+
+### 3.4 暂未接入的图片处理
+
+`imaging.*` 的缩放、裁切、白底检查和排版仍未注册到 RPC，后续作图模块单独接入。
 
 ## 4. Host 侧：`ctx.prismService`
 
 Host 插件 `@prism/dsh-host-service`（`packages/prism/host-service`）负责进程管理，其他插件通过它调用服务：
 
 ```ts
-const version = await ctx.prismService.call<{ version: string }>('service.version', {}, { timeoutMs: 5000 })
-ctx.prismService.status() // { state: 'running', exits: 0 }
+import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@prism/dsh-host-service'
+
+export async function readServiceVersion(ctx: Context): Promise<string> {
+  const result = await ctx.prismService.call<{ version: string }>('service.version', {}, { timeoutMs: 5000 })
+  return result.version
+}
 ```
 
 | 项 | 规定 |
 |---|---|
 | 可执行文件 | 配置 `command` → 环境变量 `PRISM_SERVICE_BIN` → 从插件所在目录往上找 `native/prism-service/target/{release,debug}/`，两个都有时用较新的 |
 | 数据目录 | 配置 `dataDir`，默认是 Harness home 下的 `prism/` |
-| 其他配置 | `logLevel`（默认 `info`）、`callTimeoutMs`（默认 30000）；`args` 放在服务参数前面，只给测试用 |
+| 其他配置 | `logLevel`（默认 `info`）、`callTimeoutMs`（默认 30000）、`shutdownGraceMs`（默认 45000）；`args` 放在服务参数前面，只给测试用 |
 | 就绪 | 每次启动后先调 `service.ping`，15 秒内没响应就结束进程走重启；启动或重启期间发起的调用等服务就绪，等待时间算在超时里 |
 | 状态 | `starting` → `running`；意外退出后 `restarting`；30 秒内退出 3 次或找不到可执行文件时 `failed`，不再重启；插件卸载后 `stopped` |
-| 卸载 | 关闭服务的 stdin，等服务处理完进行中的请求自己退出，12 秒后还没退出就强制结束 |
+| 卸载 | 关闭服务的 stdin，等服务处理完进行中的请求自己退出，默认 45 秒后还没退出就强制结束（`shutdownGraceMs`）；服务先排空请求，随后等待生图引擎退出 |
 | 日志 | 服务的 stderr 按行转到 Host 日志，按 tracing 的级别分 error / warn / info / debug；最近一条 ERROR 会写进退出时的错误说明 |
 
 调用失败时抛 `PrismServiceError`，`message` 是中文说明，`code` 是分类：

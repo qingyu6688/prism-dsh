@@ -1,7 +1,7 @@
 {
   "name": "@prism/dsh-tool-catalog",
-  "description": "给 Agent 用的棱镜商品库查询工具：prism_search_products、prism_get_product",
-  "version": "0.1.0",
+  "description": "棱镜商品查询、生图和参考图裂变工具",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "lib/index.js",
@@ -24,7 +24,9 @@
     "@deepseek-ai/dsh-tools": "workspace:*",
     "@deepseek-ai/dsh-util-values": "workspace:*",
     "@prism/dsh-host-catalog": "workspace:*",
-    "@prism/dsh-host-service": "workspace:*"
+    "@prism/dsh-host-service": "workspace:*",
+    "@deepseek-ai/dsh-jobs": "workspace:*",
+    "@deepseek-ai/dsh-user-approval": "workspace:*"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "workspace:~",
@@ -35,6 +37,13 @@
     "@deepseek-ai/dsh-tools": "workspace:*",
     "@deepseek-ai/dsh-util-values": "workspace:*",
     "@prism/dsh-host-catalog": "workspace:*",
-    "@prism/dsh-host-service": "workspace:*"
+    "@prism/dsh-host-service": "workspace:*",
+    "@deepseek-ai/dsh-jobs": "workspace:*",
+    "@deepseek-ai/dsh-user-approval": "workspace:*",
+    "@deepseek-ai/dsh-agent": "workspace:*",
+    "@deepseek-ai/dsh-session": "workspace:*"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "workspace:~"
   }
 }

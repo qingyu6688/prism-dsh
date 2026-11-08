@@ -392,6 +392,6 @@ async fn global_search_groups() {
     assert_eq!(found["assets"], json!([]));
     assert_eq!(
         env.ok("search.global", json!({"keyword": "   "})).await,
-        json!({"products": [], "assets": []})
+        json!({"products": [], "assets": [], "batches": []})
     );
 }

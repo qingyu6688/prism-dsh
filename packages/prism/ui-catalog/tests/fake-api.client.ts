@@ -238,6 +238,7 @@ export function fakeApi(initial: Product[] = [], shops: Shop[] = [], assets: Ass
       return Promise.resolve(true)
     }),
     search: vi.fn<CatalogApi['search']>(keyword => Promise.resolve({
+      batches: [],
       products: state.products.filter(p => p.name.includes(keyword)).slice(0, 5),
       assets: state.assets.filter(a => (a.title ?? '').includes(keyword) || a.tags.includes(keyword)).slice(0, 5),
     })),

@@ -108,6 +108,11 @@ async fn run(args: Args) -> i32 {
         "prism-service 已启动"
     );
     let ctx = Context::new(store.clone(), data_dir);
+    if let Err(error) = ctx.images.start().await {
+        tracing::error!(message = %error.message, "启动生图引擎失败");
+        store.close().await;
+        return exit_code::STORAGE;
+    }
     let result = serve(
         tokio::io::stdin(),
         tokio::io::stdout(),

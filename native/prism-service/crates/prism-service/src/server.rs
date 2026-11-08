@@ -46,6 +46,19 @@ where
 {
     let (outbox, rx) = mpsc::channel::<String>(OUTBOX_CAPACITY);
     let writer_task = tokio::spawn(write_loop(writer, rx));
+    let mut events = ctx.images.events.subscribe();
+    let event_outbox = outbox.clone();
+    let notifications = tokio::spawn(async move {
+        loop {
+            match events.recv().await {
+                Ok(event) => send(&event_outbox, event.to_string()).await,
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                    tracing::warn!("生图通知积压，请重新查询批次状态")
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
+            }
+        }
+    });
     let mut reader = BufReader::new(reader);
     let mut shutdown = ctx.shutdown_signal();
     let mut tasks = JoinSet::new();
@@ -108,6 +121,13 @@ where
         tasks.shutdown().await;
     }
 
+    ctx.images.stop().await;
+    notifications.abort();
+    if let Err(error) = notifications.await
+        && !error.is_cancelled()
+    {
+        tracing::error!(%error, "通知任务退出失败");
+    }
     drop(outbox);
     let write_result = match writer_task.await {
         Ok(result) => result,

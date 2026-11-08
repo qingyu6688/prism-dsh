@@ -33,8 +33,8 @@ impl ImageArgs {
         if self.prompt.trim().is_empty() || self.prompt.chars().count() > 4000 {
             return Err("生图指令需要 1～4000 字".into());
         }
-        if !(1..=16).contains(&self.count) || self.reference_ids.len() > 6 {
-            return Err("每次生成 1～16 张，最多引用 6 张图片".into());
+        if !(1..=200).contains(&self.count) || self.reference_ids.len() > 6 {
+            return Err("每次生成 1～200 张，最多引用 6 张图片".into());
         }
         if fission && self.reference_ids.is_empty() {
             return Err("图裂变需要原图，请添加图片附件或引用素材".into());
@@ -94,6 +94,28 @@ impl ImagePipeline {
         args: &ImageArgs,
         fission: bool,
     ) -> Result<String, String> {
+        self.submit_owned(Some(conversation_id), None, args, fission)
+            .await
+    }
+
+    /// 关联 dsh Session，不创建原 Tauri 版的会话记录。
+    pub async fn submit_session(
+        &self,
+        session_id: &str,
+        args: &ImageArgs,
+        fission: bool,
+    ) -> Result<String, String> {
+        self.submit_owned(None, Some(session_id), args, fission)
+            .await
+    }
+
+    async fn submit_owned(
+        &self,
+        conversation_id: Option<&str>,
+        session_id: Option<&str>,
+        args: &ImageArgs,
+        fission: bool,
+    ) -> Result<String, String> {
         self.validate(args, fission).await?;
         let store = self.catalog.store();
         let now = now_ms();
@@ -103,10 +125,14 @@ impl ImagePipeline {
                 &NewBatch {
                     module: "image".into(),
                     product_id: args.product_id.clone(),
-                    conversation_id: Some(conversation_id.into()),
+                    conversation_id: conversation_id.map(str::to_owned),
                     mode: if fission { "similar" } else { "generate" }.into(),
                     variants_per_source: i64::from(args.count),
-                    params: params.clone(),
+                    params: if let Some(id) = session_id {
+                        serde_json::json!({"sessionId":id,"args":args}).to_string()
+                    } else {
+                        params.clone()
+                    },
                 },
                 now,
             )

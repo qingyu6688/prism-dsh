@@ -1,5 +1,34 @@
 # 棱镜（基于 dsh）测试记录
 
+## 2026-11-05 · D4 生图、图裂变和系统凭据
+
+### 自动测试与构建
+
+在仓库根目录执行下列检查。Windows 上 pnpm 的启动脚本曾异常退出，构建改用同一 Node 入口，并把 `npm_execpath` 指向本机 pnpm 11.28.5 的 JavaScript 入口；锁文件经 `install --frozen-lockfile --ignore-scripts` 验证，没有升级原有 JavaScript 依赖。
+
+| 命令 | 结果 |
+|---|---|
+| `node node_modules/vitest/vitest.mjs run packages/prism` | 11 个文件、102 个用例通过；包括密钥迁移及失败保留、并发凭据更新、40/41 张审批边界、提交期间取消、配置表单、批次搜索和图片链接 |
+| `node node_modules/vitest/vitest.mjs run --config vitest.snapshot.config.ts -t prism-image-approval` | 1 个无密钥快照通过；使用正式 headless 组合和真实审批服务，41 张请求被拒后不创建生图任务 |
+| `cargo test --manifest-path native/prism-service/Cargo.toml -p prism-service -p prism-pipeline` | 33 个用例通过；真实 Windows 凭据管理器、Images 和异步接口模拟服务、参考图裂变、取消、重开数据库、删除素材后仍可查看批次 |
+| `cargo clippy --manifest-path native/prism-service/Cargo.toml -p prism-service -p prism-pipeline --all-targets -- -D warnings` | 通过 |
+| `node --import tsx/esm scripts/build.ts --scope artifacts` | 8 项通过 |
+| `node --import tsx/esm scripts/build.ts --scope check` | 在最新产物之后执行，Host 和 Client 两项通过 |
+| `node --import tsx/esm scripts/run-oxlint.ts packages/prism packages/bundle/prism-desktop` | 通过 |
+| `node --import tsx/esm scripts/doc-typecheck.ts`（`DSH_DOC_TYPECHECK_USE_BUILD_OUTPUT=1`） | 102 个文档代码块编译通过 |
+
+同时修正了既有测试里的客户端文件归属、DOM 元素类型和商品引用组件的参数类型；商品引用的 13 个用例单独复跑通过。Rust 测试绑定随机端口，凭据使用独立临时目录命名空间，退出时关闭模拟服务并清理测试密钥。
+
+### 实际界面验收
+
+通过 `dsh web` 加载棱镜组合及预设补丁，使用独立的 Harness home 和本机模拟图片接口。实际验证了保存配置、测试连接、编辑时留空保留密钥、批量图片入库与展示、原图链接、按批次号搜索、会话右侧栏；浅色、深色和 390px 窄屏均检查过。截图中的色块是模拟接口的固定图像，不代表真实模型画质。
+
+### 未验证与文档检查
+
+没有调用真实付费生图网关，也没有发送真实文本模型请求；厂商协议兼容性、费用、模型质量和真实对话中的自动作图仍需使用实际账号验收。Windows 安装包属于 D5；裁切、缩放等 `imaging.*` 接口尚未接入。
+
+`doc-sync` 尚未全部通过：Prism 的子系统和工具目录登记、类型文档链接、生成目录、双语配对及部分既有 JSDoc/README 规范仍需整理。此次补充的 README 结构、文档代码示例和 TypeScript 路径生成检查已分别修正并验证。界面国际化检查仍报告既有品牌文字与 `CNY` 默认值，新增生图文案没有硬编码告警。未把这些结果记为全库检查通过。
+
 ## 2026-11-05 · D3.4 规则包、全局搜索、@ 引用商品
 
 ### 自动测试

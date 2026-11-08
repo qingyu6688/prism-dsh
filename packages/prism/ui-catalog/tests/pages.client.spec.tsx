@@ -12,7 +12,7 @@ import { zh } from '../src/client/locales.ts'
 import type { Translate } from '../src/client/ProductForm.tsx'
 import { ProductsPage } from '../src/client/ProductsPage.tsx'
 import { ShopsSection } from '../src/client/ShopsSection.tsx'
-import { fakeApi, product } from './fake-api.ts'
+import { fakeApi, product } from './fake-api.client.ts'
 
 const t = makeTranslate(zh) as Translate
 

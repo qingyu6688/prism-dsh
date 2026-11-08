@@ -10,7 +10,7 @@ import { AssetsPage } from '../src/client/AssetsPage.tsx'
 import { ImportDialog } from '../src/client/ImportDialog.tsx'
 import { zh } from '../src/client/locales.ts'
 import type { Translate } from '../src/client/ProductForm.tsx'
-import { asset, fakeApi, PREVIEW, product } from './fake-api.ts'
+import { asset, fakeApi, PREVIEW, product } from './fake-api.client.ts'
 
 const t = makeTranslate(zh) as Translate
 
@@ -56,7 +56,7 @@ describe('导入商品', () => {
     fireEvent.click(screen.getByRole('tab', { name: '跳过这一行' }))
     fireEvent.click(screen.getByRole('checkbox', { name: /保存这次的对列方式/ }))
     fireEvent.change(screen.getByLabelText('对列方式的名称'), { target: { value: '供应商表' } })
-    fireEvent.click(screen.getByRole('button', { name: '导入 3 行' }))
+    fireEvent.click(screen.getByRole<HTMLButtonElement>('button', { name: '导入 3 行' }))
 
     expect(await screen.findByText('导入完成')).toBeTruthy()
     expect(api.lastImport).toMatchObject({
@@ -79,7 +79,7 @@ describe('导入商品', () => {
     await screen.findByText('供应商商品.csv，共 3 行')
     await choose(screen.getByRole('button', { name: /^商品名称/ }), '不导入')
     expect(screen.getByText('还有必填字段没有对应的列：商品名称')).toBeTruthy()
-    expect((screen.getByRole('button', { name: '导入 3 行' })).disabled).toBe(true)
+    expect((screen.getByRole<HTMLButtonElement>('button', { name: '导入 3 行' })).disabled).toBe(true)
   })
 
   it('改表头行号后重新读取；套用了保存的对列方式时提示', async () => {

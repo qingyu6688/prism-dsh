@@ -13,6 +13,7 @@ import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typer
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import { PrismServiceError } from '@prism/dsh-host-service'
 import { FILE_PATH, UPLOAD_PATH, cleanInbox, receiveUpload, serveFile } from './files.ts'
+import type { ImageProfileInput, ImageProfile, ImageBatch } from './types.ts'
 import type {
   Asset,
   AssetFilter,
@@ -94,6 +95,73 @@ export class PrismCatalog extends TypertRemoteService {
       }
       throw error
     }
+  }
+
+  /**
+   * 列出不含密钥的生图配置。
+   * @returns 配置及密钥是否存在。
+   */
+  @Remote
+  async listImageProfiles(): Promise<readonly ImageProfile[]> {
+    return await this.call('image.listProfiles', {})
+  }
+
+  /**
+   * 保存配置并启用；编辑时省略密钥会保留旧值。
+   * @param input - 配置字段及可选的新密钥。
+   * @returns 保存后的配置，不含密钥。
+   */
+  @Remote
+  async saveImageProfile(input: ImageProfileInput): Promise<ImageProfile> {
+    return await this.call('image.saveProfile', input)
+  }
+
+  /**
+   * 删除生图配置及系统凭据。
+   * @param request - 生图配置 ID。
+   */
+  @Remote
+  async deleteImageProfile(request: IdRequest): Promise<void> {
+    await this.call('image.deleteProfile', request)
+  }
+
+  /**
+   * 读取接口支持的模型，验证已保存的连接。
+   * @param request - 生图配置 ID。
+   * @returns 接口是否支持模型列表，以及图像模型名称。
+   */
+  @Remote
+  async testImageProfile(request: IdRequest): Promise<{ readonly supported: boolean; readonly models: readonly string[] }> {
+    return await this.call('image.testProfile', request)
+  }
+
+  /**
+   * 列出最近 100 个批次中的生图任务。
+   * @returns 批次状态和仍保留的素材。
+   */
+  @Remote
+  async listImageBatches(): Promise<readonly ImageBatch[]> {
+    return await this.call('image.listBatches', {})
+  }
+
+  /**
+   * 查询批次进度和生成结果。
+   * @param request - 生图批次 ID。
+   * @returns 持久化状态及仍保留的素材。
+   */
+  @Remote
+  async imageBatchStatus(request: IdRequest): Promise<ImageBatch> {
+    return await this.call('image.batchStatus', request)
+  }
+
+  /**
+   * 取消尚未完成的任务，保留已生成图片。
+   * @param request - 生图批次 ID。
+   * @returns 取消后的批次状态。
+   */
+  @Remote
+  async cancelImageBatch(request: IdRequest): Promise<ImageBatch> {
+    return await this.call('image.cancelBatch', request)
   }
 
   // ---------- 店铺 ----------
@@ -348,9 +416,9 @@ export class PrismCatalog extends TypertRemoteService {
   // ---------- 搜索 ----------
 
   /**
-   * 全局搜索：商品、素材各取前 5 条。
+   * 全局搜索：商品、素材各取前 5 条，数字或 #序号匹配生图批次。
    * @param request - 关键词；去掉空格后为空时返回空结果。
-   * @returns 商品和素材。
+   * @returns 商品、素材和匹配的生图批次。
    */
   @Remote
   async search(request: { readonly keyword: string }): Promise<SearchResults> {

@@ -10,7 +10,9 @@ export interface FocusRequest<T> {
   readonly seq: number
 }
 
+/** 搜索开关及当前请求打开的业务页面。 */
 export interface NavigatorState {
+  readonly imageBatch: string | undefined
   readonly searchOpen: boolean
   /** 要在商品库里打开详情的商品 id。 */
   readonly product: FocusRequest<string> | null
@@ -20,7 +22,7 @@ export interface NavigatorState {
 
 /** 商品库界面的跳转状态。 */
 export class CatalogNavigator {
-  private current: NavigatorState = { searchOpen: false, product: null, assetKeyword: null }
+  private current: NavigatorState = { imageBatch: undefined, searchOpen: false, product: null, assetKeyword: null }
   private seq = 0
   private readonly listeners = new Set<() => void>()
 
@@ -42,10 +44,12 @@ export class CatalogNavigator {
   /** 给 `useSyncExternalStore` 用：同一状态返回同一个对象。 */
   readonly snapshot = (): NavigatorState => this.current
 
+  /** 打开全局业务搜索。 */
   openSearch(): void {
     this.set({ searchOpen: true })
   }
 
+  /** 关闭全局业务搜索。 */
   closeSearch(): void {
     this.set({ searchOpen: false })
   }
@@ -66,6 +70,15 @@ export class CatalogNavigator {
   showAssets(keyword: string): void {
     this.set({ searchOpen: false, assetKeyword: { value: keyword, seq: ++this.seq } })
     this.selectPanel(this.panels.assets)
+  }
+
+  /**
+   * 切到生图结果，可定位已保存的批次。
+   * @param id - 目标生图批次；不传时显示全部批次。
+   */
+  showImageBatch(id?: string): void {
+    this.set({ searchOpen: false, imageBatch: id })
+    this.selectPanel('prism-images')
   }
 
   private set(patch: Partial<NavigatorState>): void {

@@ -3,8 +3,10 @@
 //! 各分组的方法都是薄薄一层：解析参数、调业务 crate、把结果序列化，和原 Tauri 版的命令一一对应。
 
 mod catalog;
+pub mod image;
 mod rules;
 mod search;
+pub mod secrets;
 
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
@@ -32,6 +34,7 @@ pub struct Context {
     catalog: Catalog,
     rules: rules::Rules,
     shutdown: watch::Sender<bool>,
+    pub images: image::ImageRuntime,
 }
 
 impl std::fmt::Debug for Context {
@@ -47,6 +50,7 @@ impl Context {
     /// 建好商品库、加载数据目录 `rules/` 下的用户规则。
     pub fn new(store: Store, data_dir: PathBuf) -> Arc<Self> {
         Arc::new(Self {
+            images: image::ImageRuntime::new(store.clone(), data_dir.clone()),
             catalog: Catalog::new(store.clone(), &data_dir),
             rules: rules::Rules::load(data_dir.join(RULES_DIR)),
             store,
@@ -80,6 +84,8 @@ pub async fn dispatch(ctx: &Context, method: &str, params: Value) -> Result<Valu
         Some(("catalog", name)) => catalog::dispatch(ctx, method, name, params).await,
         Some(("rules", name)) => rules::dispatch(ctx, method, name, params),
         Some(("search", name)) => search::dispatch(ctx, method, name, params).await,
+        Some(("image", name)) => image::dispatch(ctx, method, name, params).await,
+        Some(("credentials", name)) => secrets::dispatch(ctx, method, name, params).await,
         _ => Err(RpcError::method_not_found(method)),
     }
 }

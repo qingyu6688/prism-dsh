@@ -126,7 +126,7 @@ export const productReferenceRule: UserTextRule<'prism-product'> = {
  * @param props - 识别出的引用和原文。
  * @returns 行内标签。
  */
-export function ProductReference({ node, raw }: UserTextNodeProps<'prism-product'>) {
+export function ProductReference({ node, raw }: Pick<UserTextNodeProps<'prism-product'>, 'node' | 'raw'>) {
   return (
     <span className={css.productChip} title={raw} data-ref-chip="prism-product">
       <ProductGlyph size={14} className={css.productChipIcon} />
