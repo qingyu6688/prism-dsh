@@ -163,10 +163,10 @@
     "@deepseek-ai/dsh-tools": "workspace:*",
     "@deepseek-ai/dsh-user-approval": "workspace:*",
     "@types/js-yaml": "^4.0.9",
-    "@types/ws": "8.18.1",
+    "@types/ws": "8.18.2",
     "ajv": "^8.20.0",
     "execa": "^10.0.1",
-    "ws": "8.21.3"
+    "ws": "8.22.0"
   },
   "exports": {
     "./profile-boot": {
